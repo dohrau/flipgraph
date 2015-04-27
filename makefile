@@ -16,4 +16,4 @@ $(OBJ_DIR):
 	mkdir $(OBJ_DIR)
 
 clean:
-	rm obj/*.o
+	rm -f obj/*.o
