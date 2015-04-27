@@ -1,13 +1,20 @@
 # Flipgraph
 
-Flipgraph is a program for generation of flip graphs. It is part of my Master's thesis.
+Flipgraph is a program for generation of flip graphs for triangulations. It is part of my Master's thesis.
 
 ## Usage
 
 The program recognizes the following command line parameters.
 
+ * `-m`: The mode of the execution. Possible choices are listed below.
+    - `generate`: computes and outputs the flip graph.
+    - `diameter`: computes and outputs the diameter of the flip graph.
  * `-n`: The number of vertices of the triangulations.
  * `-o`: The path of the output file. The standard output is used if no output file is specified.
+
+Planned parameters are as follows.
+
+ * `-l`: The path of an input file. This allows to load a previously computed flip graphs.
 
 ## What is a Flip Graph?
 
