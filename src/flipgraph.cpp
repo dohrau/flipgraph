@@ -4,17 +4,14 @@
  * author: jerome dohrau
  * ---------------------------------------------------------------------- */
 
-#ifndef __FG_FLIP_GRAPH__
-#define __FG_FLIP_GRAPH__
-
 #include "flipgraph.hpp"
 #include "triangulation.hpp"
 
-#include <vector>
 #include <queue>
 #include <map>
 #include <utility>
 #include <iostream>
+#include <algorithm>
 
 /* ---------------------------------------------------------------------- *
  * flip graph
@@ -97,8 +94,6 @@ void write_flip_graph(std::vector<std::vector<int> >& graph, std::ostream& outpu
         output_stream << std::endl;
     }
 }
-
-#endif
 
 /* ---------------------------------------------------------------------- *
  * end of file
