@@ -49,9 +49,9 @@ void compute_flip_graph(int n, std::vector<std::vector<int> >& graph) {
         // loop through neighboring triangulations
         int m = triangulation->size();
         for (int i = 0; i < m; ++i) {
-            Edge* edge = triangulation->edge(i);
-            if (triangulation->is_representative(edge) && triangulation->is_flippable(edge)) {
-                triangulation->flip(edge);
+            Halfedge* halfedge = triangulation->halfedge(i);
+            if (triangulation->is_representative(halfedge) && triangulation->is_flippable(halfedge)) {
+                triangulation->flip(halfedge);
 
                 Code code(*triangulation);
                 int other_index = 0;
@@ -67,13 +67,13 @@ void compute_flip_graph(int n, std::vector<std::vector<int> >& graph) {
                     other_index = indices[code];
                 }
 
-                // add edge if not already present
+                // add halfedge if not already present
                 if (std::count(graph[index].begin(), graph[index].end(), other_index) == 0) {
                     graph[index].push_back(other_index);
                 }
 
-                // note: after two flips the edge and its twin are swapped
-                triangulation->flip(edge);
+                // note: after two flips the halfedge and its twin are swapped
+                triangulation->flip(halfedge);
             }
         }
 

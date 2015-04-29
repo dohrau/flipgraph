@@ -15,7 +15,7 @@
  * ---------------------------------------------------------------------- */
 
 class Vertex;
-class Edge;
+class Halfedge;
 class Triangulation;
 class Code;
 
@@ -27,64 +27,67 @@ class Code;
     // the label
     int label_;
 
-    // an incident edge
-    Edge* edge_;
+    // an outgoing halfedge
+    Halfedge* halfedge_;
 
 public:
     // sets this vertex's label to the specified label
     void set_label(int label);
 
-    // makes the specified edge incident to this vertex
-    void set_edge(Edge* edge_);
+    // makes the specified halfedge an outgoing halfedge
+    void set_halfedge(Halfedge* halfedge_);
 
     // returns this vertex's label
     int label() const;
 
-    // returns an edge incident to this vertex
-    Edge* edge() const;
+    // returns an outgoing halfedge
+    Halfedge* halfedge() const;
+
+    // returns this vertex's degree
+    int degree() const;
  };
 
 /* ---------------------------------------------------------------------- *
- * declaration of the edge class
+ * declaration of the halfedge class
  * ---------------------------------------------------------------------- */ 
 
-class Edge {
+class Halfedge {
     // the target vertex
     Vertex* target_;
 
-    // the twin edge
-    Edge* twin_;
+    // the twin halfedge
+    Halfedge* twin_;
 
-    // the previous edge of the incident face
-    Edge* prev_;
+    // the previous halfedge of the incident face
+    Halfedge* prev_;
 
-    // the next edge of the incident face
-    Edge* next_;
+    // the next halfedge of the incident face
+    Halfedge* next_;
 
 public:
     // sets the target vertex to the specified vertex
     void set_target(Vertex* vertex);
 
-    // sets the twin edge to the specified edge
-    void set_twin(Edge* edge);
+    // sets the twin halfedge to the specified halfedge
+    void set_twin(Halfedge* halfedge);
 
-    // sets the next edge to the specified edge
-    void set_prev(Edge* edge);
+    // sets the next halfedge to the specified halfedge
+    void set_prev(Halfedge* halfedge);
 
-    // sets the next edge to the specified edge
-    void set_next(Edge* edge);
+    // sets the next halfedge to the specified halfedge
+    void set_next(Halfedge* halfedge);
 
     // returns the target vertex
     Vertex* target() const;
 
-    // returns the twin edge
-    Edge* twin() const;
+    // returns the twin halfedge
+    Halfedge* twin() const;
 
-    // returns the previous edge of the incident face
-    Edge* prev() const;
+    // returns the previous halfedge of the incident face
+    Halfedge* prev() const;
 
-    // returns the next edge of the incident face
-    Edge* next() const;
+    // returns the next halfedge of the incident face
+    Halfedge* next() const;
 };
 
 /* ---------------------------------------------------------------------- *
@@ -110,29 +113,31 @@ private:
     std::vector<Vertex*> vertices_;
 
     // the list of edges
-    std::vector<Edge*> edges_;
+    std::vector<Halfedge*> edges_;
 
     // creates and returns a new vertex
     Vertex* new_vertex();
 
-    // creates and returns a new edge
-    Edge* new_edge();
+    // creates and returns a new halfedge
+    Halfedge* new_edge();
 
     // makes the two specified edges twins
-    void make_twins(Edge* edge_a, Edge* edge_b);
+    void make_twins(Halfedge* halfedge_a, Halfedge* halfedge_b);
 
     // makes the two specified edges consecutive
-    void make_consecutive(Edge* edge_a, Edge* edge_b);
+    void make_consecutive(Halfedge* halfedge_a, Halfedge* halfedge_b);
 
     // builds a triangle with the three specified edges
-    void make_triangle(Edge* edge_a, Edge* edge_b, Edge* edge_c);
+    void make_triangle(
+            Halfedge* halfedge_a, Halfedge* halfedge_b, Halfedge* halfedge_c);
 
     // builds a triangle with the three specified edges and vertices
-    void make_triangle(Edge* edge_a, Edge* edge_b, Edge* edge_c,
-                       Vertex* vertex_a, Vertex* vertex_b, Vertex* vertex_c);
+    void make_triangle(
+            Halfedge* halfedge_a, Halfedge* halfedge_b, Halfedge* halfedge_c,
+            Vertex* vertex_a, Vertex* vertex_b, Vertex* vertex_c);
 
-    // performs an e3-expansion at the specified edge
-    void expand_three(Edge* e);
+    // performs an e3-expansion at the specified halfedge
+    void expand_three(Halfedge* halfedge);
 
     // builds a canonical triangulation with n vertices
     void make_canonical(int n);
@@ -156,20 +161,20 @@ public:
     // returns the i-th vertex
     Vertex* vertex(int i) const;
 
-    // returns the i-th edge
-    Edge* edge(int i) const;
+    // returns the i-th halfedge
+    Halfedge* halfedge(int i) const;
 
-    // returns the edge from the first specified vertex to the second
-    Edge* edge(Vertex* vertex_a, Vertex* vertex_b) const;
+    // returns the halfedge from the first specified vertex to the second
+    Halfedge* halfedge(Vertex* vertex_a, Vertex* vertex_b) const;
 
-    // returns whether the specified edge or its twin is representative
-    bool is_representative(Edge* edge);
+    // returns whether the specified halfedge or its twin is representative
+    bool is_representative(Halfedge* halfedge);
 
-    // returns whether the specified edge is flippable or not
-    bool is_flippable(Edge* edge);
+    // returns whether the specified halfedge is flippable or not
+    bool is_flippable(Halfedge* halfedge);
 
-    // flips the specified edge
-    void flip(Edge* edge);
+    // flips the specified halfedge
+    void flip(Halfedge* halfedge);
 };
 
 /* ---------------------------------------------------------------------- *
@@ -182,8 +187,8 @@ public:
     Code(const Triangulation& triangulation);
 
     // constructor that computes code from specified triangulation starting
-    // at the specified edge
-    Code(const Triangulation& triangulation, Edge* edge);
+    // at the specified halfedge
+    Code(const Triangulation& triangulation, Halfedge* halfedge);
 
     // constructor that copies the specified code
     Code(const Code& code);
@@ -202,16 +207,16 @@ private:
     void initialize(const Triangulation& triangulation);
 
     // updates the this code for the specified triangulation starting at
-    // the specified edge and using the specified orientation.
+    // the specified halfedge and using the specified orientation.
     // the code is updated if the new code is lexicographically smaller
-    void update(const Triangulation& triangulation, Edge* edge, bool clockwise);
+    void update(const Triangulation& triangulation, Halfedge* halfedge, bool clockwise);
 
     // computes the code for the specified triangulation
     void compute_code(const Triangulation& triangulation);
 
     // computes the code for the specified triangulation starting at the
-    // specified edge
-    void compute_code(const Triangulation& triangulation, Edge* edge);
+    // specified halfedge
+    void compute_code(const Triangulation& triangulation, Halfedge* halfedge);
 
 public:
     // sets the i-th symbol of the code
@@ -255,6 +260,9 @@ void write_triangulation(Triangulation& triangulation, std::ostream& output_stre
 
 // writes the specified code to the specified stream
 void write_code_alpha(Code& code, std::ostream& output_stream);
+
+// checks whether the specified triangulation is as it should be
+void check_triangulation(Triangulation& triangulation);
 
 #endif
 

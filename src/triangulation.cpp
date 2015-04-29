@@ -4,10 +4,13 @@
  * author: jerome dohrau
  * ---------------------------------------------------------------------- */
 
+// #define NDEBUG
+
 #include "triangulation.hpp"
 
 #include <queue>
 #include <map>
+#include <cassert>
 
 /* ---------------------------------------------------------------------- *
  * implementation of the vertex class
@@ -17,51 +20,61 @@ void Vertex::set_label(int label) {
     label_ = label;
 }
 
-void Vertex::set_edge(Edge* edge) {
-    edge_ = edge;
+void Vertex::set_halfedge(Halfedge* halfedge) {
+    halfedge_ = halfedge;
 }
 
 int Vertex::label() const {
     return label_;
 }
 
-Edge* Vertex::edge() const {
-    return edge_;
+Halfedge* Vertex::halfedge() const {
+    return halfedge_;
+}
+
+int Vertex::degree() const {
+    int degree = 0;
+    Halfedge* current = halfedge_;
+    do {
+        degree++;
+        current = current->twin()->next();
+    } while (current != halfedge_);
+    return degree;
 }
 
 /* ---------------------------------------------------------------------- *
- * implementation of the edge class
+ * implementation of the halfedge class
  * ---------------------------------------------------------------------- */
 
-void Edge::set_target(Vertex* vertex) {
+void Halfedge::set_target(Vertex* vertex) {
     target_ = vertex;
 }
 
-void Edge::set_twin(Edge* edge) {
-    twin_ = edge;
+void Halfedge::set_twin(Halfedge* halfedge) {
+    twin_ = halfedge;
 }
 
-void Edge::set_prev(Edge* edge) {
-    prev_ = edge;
+void Halfedge::set_prev(Halfedge* halfedge) {
+    prev_ = halfedge;
 }
 
-void Edge::set_next(Edge* edge) {
-    next_ = edge;
+void Halfedge::set_next(Halfedge* halfedge) {
+    next_ = halfedge;
 }
 
-Vertex* Edge::target() const {
+Vertex* Halfedge::target() const {
     return target_;
 }
 
-Edge* Edge::twin() const {
+Halfedge* Halfedge::twin() const {
     return twin_;
 }
 
-Edge* Edge::prev() const {
+Halfedge* Halfedge::prev() const {
     return prev_;
 }
 
-Edge* Edge::next() const {
+Halfedge* Halfedge::next() const {
     return next_;
 }
 
@@ -91,76 +104,84 @@ Vertex* Triangulation::new_vertex() {
     return vertex;
 }
 
-Edge* Triangulation::new_edge() {
-    Edge* edge = new Edge();
-    edges_.push_back(edge);
-    return edge;
+Halfedge* Triangulation::new_edge() {
+    Halfedge* halfedge = new Halfedge();
+    edges_.push_back(halfedge);
+    return halfedge;
 }
 
-void Triangulation::make_twins(Edge* edge_a, Edge* edge_b) {
-    edge_a->set_twin(edge_b);
-    edge_b->set_twin(edge_a);
+void Triangulation::make_twins(Halfedge* halfedge_a, Halfedge* halfedge_b) {
+    halfedge_a->set_twin(halfedge_b);
+    halfedge_b->set_twin(halfedge_a);
 }
 
-void Triangulation::make_consecutive(Edge* edge_a, Edge* edge_b) {
-    edge_a->set_next(edge_b);
-    edge_b->set_prev(edge_a);
+void Triangulation::make_consecutive(Halfedge* halfedge_a, Halfedge* halfedge_b) {
+    halfedge_a->set_next(halfedge_b);
+    halfedge_b->set_prev(halfedge_a);
 }
 
-void Triangulation::make_triangle(Edge* edge_a, Edge* edge_b, Edge* edge_c) {
-    make_consecutive(edge_a, edge_b);
-    make_consecutive(edge_b, edge_c);
-    make_consecutive(edge_c, edge_a);
+void Triangulation::make_triangle(
+        Halfedge* halfedge_a, Halfedge* halfedge_b, Halfedge* halfedge_c) {
+    make_consecutive(halfedge_a, halfedge_b);
+    make_consecutive(halfedge_b, halfedge_c);
+    make_consecutive(halfedge_c, halfedge_a);
 }
 
-void Triangulation::make_triangle(Edge* edge_a, Edge* edge_b, Edge* edge_c,
-                                  Vertex* vertex_a, Vertex* vertex_b, Vertex* vertex_c) {
-    make_triangle(edge_a, edge_b, edge_c);
-    vertex_a->set_edge(edge_c);
-    vertex_b->set_edge(edge_a);
-    vertex_c->set_edge(edge_b);
-    edge_a->set_target(vertex_c);
-    edge_b->set_target(vertex_a);
-    edge_c->set_target(vertex_b);
+void Triangulation::make_triangle(
+        Halfedge* halfedge_a, Halfedge* halfedge_b, Halfedge* halfedge_c,
+        Vertex* vertex_a, Vertex* vertex_b, Vertex* vertex_c) {
+    make_triangle(halfedge_a, halfedge_b, halfedge_c);
+    vertex_a->set_halfedge(halfedge_c);
+    vertex_b->set_halfedge(halfedge_a);
+    vertex_c->set_halfedge(halfedge_b);
+    halfedge_a->set_target(vertex_c);
+    halfedge_b->set_target(vertex_a);
+    halfedge_c->set_target(vertex_b);
 }
 
-void Triangulation::expand_three(Edge* edge) {
-    Edge* edge_ab = edge;
-    Edge* edge_bc = edge->next();
-    Edge* edge_ca = edge->prev();
-    Vertex* vertex_a = edge_ca->target();
-    Vertex* vertex_b = edge_ab->target();
-    Vertex* vertex_c = edge_bc->target();
+void Triangulation::expand_three(Halfedge* halfedge) {
+    Halfedge* halfedge_ab = halfedge;
+    Halfedge* halfedge_bc = halfedge->next();
+    Halfedge* halfedge_ca = halfedge->prev();
+    Vertex* vertex_a = halfedge_ca->target();
+    Vertex* vertex_b = halfedge_ab->target();
+    Vertex* vertex_c = halfedge_bc->target();
     Vertex* vertex_d = new_vertex();
     
-    make_triangle(edge_ab, new_edge(), new_edge(), vertex_d, vertex_a, vertex_b);
-    make_triangle(edge_bc, new_edge(), new_edge(), vertex_d, vertex_b, vertex_c);
-    make_triangle(edge_ca, new_edge(), new_edge(), vertex_d, vertex_c, vertex_a);
-    make_twins(edge_ab->next(), edge_bc->prev());
-    make_twins(edge_bc->next(), edge_ca->prev());
-    make_twins(edge_ca->next(), edge_ab->prev());
+    make_triangle(halfedge_ab, new_edge(), new_edge(), vertex_d, vertex_a, vertex_b);
+    make_triangle(halfedge_bc, new_edge(), new_edge(), vertex_d, vertex_b, vertex_c);
+    make_triangle(halfedge_ca, new_edge(), new_edge(), vertex_d, vertex_c, vertex_a);
+    make_twins(halfedge_ab->next(), halfedge_bc->prev());
+    make_twins(halfedge_bc->next(), halfedge_ca->prev());
+    make_twins(halfedge_ca->next(), halfedge_ab->prev());
 }
 
 void Triangulation::make_canonical(int n) {
     Vertex* vertex_a = new_vertex();
     Vertex* vertex_b = new_vertex();
     Vertex* vertex_c = new_vertex();
-    Edge* edge_ab = new_edge();
-    Edge* edge_bc = new_edge();
-    Edge* edge_ca = new_edge();
-    Edge* edge_ba = new_edge();
-    Edge* edge_cb = new_edge();
-    Edge* edge_ac = new_edge();
+    Halfedge* halfedge_ab = new_edge();
+    Halfedge* halfedge_bc = new_edge();
+    Halfedge* halfedge_ca = new_edge();
+    Halfedge* halfedge_ba = new_edge();
+    Halfedge* halfedge_cb = new_edge();
+    Halfedge* halfedge_ac = new_edge();
     
     // build first triangle
-    make_triangle(edge_ab, edge_bc, edge_ca, vertex_c, vertex_a, vertex_b);
-    make_triangle(edge_ac, edge_cb, edge_ba, vertex_b, vertex_a, vertex_c);
-    make_twins(edge_ab, edge_ba);
-    make_twins(edge_bc, edge_cb);
-    make_twins(edge_ca, edge_ac);
+    make_triangle(halfedge_ab, halfedge_bc, halfedge_ca, vertex_c, vertex_a, vertex_b);
+    make_triangle(halfedge_ac, halfedge_cb, halfedge_ba, vertex_b, vertex_a, vertex_c);
+    make_twins(halfedge_ab, halfedge_ba);
+    make_twins(halfedge_bc, halfedge_cb);
+    make_twins(halfedge_ca, halfedge_ac);
     
     // apply e3-expansion n-3 times
-    for (int i = 3; i < n; ++i) { expand_three(edge_ab); }
+    for (int i = 3; i < n; ++i) {
+        expand_three(halfedge_ab);
+    }
+
+    #ifndef NDEBUG
+    check_triangulation(*this);
+    #endif
 }
 
 void Triangulation::build_from_code(const Code& code) {
@@ -173,23 +194,25 @@ void Triangulation::build_from_code(const Code& code) {
     for (int i = 0; i < n; ++i) {
         Vertex* vertex_a = vertex(i);
         
-        Edge* first = nullptr;
-        Edge* last = nullptr;
+        Halfedge* first = nullptr;
+        Halfedge* last = nullptr;
         
         while (code.symbol(++index)) {
             int j = (int) (code.symbol(index) - 1);
             Vertex* vertex_b = vertex(j);
             
-            Edge* current;
+            Halfedge* current;
             if (i < j) {
-                // create new edge
+                // create new halfedge
                 current = new_edge();
                 current->set_target(vertex_b);
                 make_twins(current, new_edge());
                 current->twin()->set_target(vertex_a);
             } else {
-                // get existing edge
-                current = edge(vertex_b, vertex_a)->twin();
+                // get existing halfedge
+                current = halfedge(vertex_b, vertex_a);
+                assert(current != nullptr);
+                current = current->twin();
             }
             
             if (first == nullptr) { first = current; }
@@ -198,15 +221,19 @@ void Triangulation::build_from_code(const Code& code) {
         }
         
         make_consecutive(last, first);
-        vertex_a->set_edge(first);
+        vertex_a->set_halfedge(first);
     }
+
+    #ifndef NDEBUG
+    check_triangulation(*this);
+    #endif
 }
 
 void Triangulation::copy(const Triangulation& triangulation) {
     int n = triangulation.order();
     int m = triangulation.size();
     std::map<Vertex*, Vertex*> vertex_map;
-    std::map<Edge*, Edge*> edge_map;
+    std::map<Halfedge*, Halfedge*> edge_map;
     
     for (int i = 0; i < n; ++i) {
         Vertex* vertex = triangulation.vertex(i);
@@ -215,26 +242,30 @@ void Triangulation::copy(const Triangulation& triangulation) {
     }
     
     for (int i = 0; i < m; ++i) {
-        Edge* edge = triangulation.edge(i);
-        Edge* copy = new_edge();
-        edge_map[edge] = copy;
+        Halfedge* halfedge = triangulation.halfedge(i);
+        Halfedge* copy = new_edge();
+        edge_map[halfedge] = copy;
     }
     
     for (int i = 0; i < n; ++i) {
         Vertex* vertex = triangulation.vertex(i);
         Vertex* copy = vertex_map[vertex];
         copy->set_label(vertex->label());
-        copy->set_edge(edge_map[vertex->edge()]);
+        copy->set_halfedge(edge_map[vertex->halfedge()]);
     }
     
     for (int i = 0; i < m; ++i) {
-        Edge* edge = triangulation.edge(i);
-        Edge* copy = edge_map[edge];
-        copy->set_target(vertex_map[edge->target()]);
-        copy->set_twin(edge_map[edge->twin()]);
-        copy->set_prev(edge_map[edge->prev()]);
-        copy->set_next(edge_map[edge->next()]);
+        Halfedge* halfedge = triangulation.halfedge(i);
+        Halfedge* copy = edge_map[halfedge];
+        copy->set_target(vertex_map[halfedge->target()]);
+        copy->set_twin(edge_map[halfedge->twin()]);
+        copy->set_prev(edge_map[halfedge->prev()]);
+        copy->set_next(edge_map[halfedge->next()]);
     }
+
+    #ifndef NDEBUG
+    check_triangulation(*this);
+    #endif
 }
 
 void Triangulation::clear() {
@@ -258,13 +289,13 @@ Vertex* Triangulation::vertex(int i) const {
     return vertices_[i];
 }
 
-Edge* Triangulation::edge(int i) const {
+Halfedge* Triangulation::halfedge(int i) const {
     return edges_[i];
 }
 
-Edge* Triangulation::edge(Vertex* vertex_a, Vertex* vertex_b) const {
-    Edge* first = vertex_a->edge();
-    Edge* current = first;
+Halfedge* Triangulation::halfedge(Vertex* vertex_a, Vertex* vertex_b) const {
+    Halfedge* first = vertex_a->halfedge();
+    Halfedge* current = first;
     do {
         if (current->target() == vertex_b) { return current; }
         current = current->twin()->next();
@@ -272,15 +303,15 @@ Edge* Triangulation::edge(Vertex* vertex_a, Vertex* vertex_b) const {
     return nullptr;
 }
 
-bool Triangulation::is_representative(Edge* edge) {
-    return edge < edge->twin();
+bool Triangulation::is_representative(Halfedge* halfedge) {
+    return halfedge < halfedge->twin();
 }
 
-bool Triangulation::is_flippable(Edge* edge) {
-    Vertex* vertex_a = edge->next()->target();
-    Vertex* vertex_b = edge->twin()->next()->target();
-    Edge* first = vertex_a->edge();
-    Edge* current = first;
+bool Triangulation::is_flippable(Halfedge* halfedge) {
+    Vertex* vertex_a = halfedge->next()->target();
+    Vertex* vertex_b = halfedge->twin()->next()->target();
+    Halfedge* first = vertex_a->halfedge();
+    Halfedge* current = first;
     
     // check whether vertex_a and vertex_b are adjacent
     do {
@@ -290,23 +321,25 @@ bool Triangulation::is_flippable(Edge* edge) {
     return true;
 }
 
-void Triangulation::flip(Edge* edge) {
-    Edge* twin = edge->twin();
-    Vertex* vertex_t = edge->target();
+void Triangulation::flip(Halfedge* halfedge) {
+    assert(is_flippable(halfedge));
+
+    Halfedge* twin = halfedge->twin();
+    Vertex* vertex_t = halfedge->target();
     Vertex* vertex_s =twin->target();
-    Vertex* vertex_a = edge->next()->target();
+    Vertex* vertex_a = halfedge->next()->target();
     Vertex* vertex_b = twin->next()->target();
-    Edge* edge_ta = edge->next();
-    Edge* edge_as = edge->prev();
-    Edge* edge_sb = twin->next();
-    Edge* edge_bt = twin->prev();
+    Halfedge* edge_ta = halfedge->next();
+    Halfedge* edge_as = halfedge->prev();
+    Halfedge* edge_sb = twin->next();
+    Halfedge* edge_bt = twin->prev();
     
-    make_triangle(edge, edge_bt, edge_ta);
+    make_triangle(halfedge, edge_bt, edge_ta);
     make_triangle(twin, edge_as, edge_sb);
-    edge->set_target(vertex_b);
+    halfedge->set_target(vertex_b);
     twin->set_target(vertex_a);
-    if (vertex_t->edge() == twin) { vertex_t->set_edge(edge_ta); }
-    if (vertex_s->edge() == edge) { vertex_s->set_edge(edge_sb); }
+    if (vertex_t->halfedge() == twin) { vertex_t->set_halfedge(edge_ta); }
+    if (vertex_s->halfedge() == halfedge) { vertex_s->set_halfedge(edge_sb); }
 }
 
 /* ---------------------------------------------------------------------- *
@@ -317,8 +350,8 @@ Code::Code(const Triangulation& triangulation) {
     compute_code(triangulation);
 }
 
-Code::Code(const Triangulation& triangulation, Edge* edge) {
-    compute_code(triangulation, edge);
+Code::Code(const Triangulation& triangulation, Halfedge* halfedge) {
+    compute_code(triangulation, halfedge);
 }
 
 Code::Code(const Code& code) {
@@ -339,7 +372,7 @@ void Code::initialize(const Triangulation& triangulation) {
     for (int i = 0; i < length_; ++i) { code_[i] = n; }
 }
 
-void Code::update(const Triangulation& triangulation, Edge* edge, bool clockwise) {
+void Code::update(const Triangulation& triangulation, Halfedge* halfedge, bool clockwise) {
     int n = triangulation.order();
     for (int i = 0; i < n; ++i) {
         Vertex* vertex = triangulation.vertex(i);
@@ -349,14 +382,14 @@ void Code::update(const Triangulation& triangulation, Edge* edge, bool clockwise
     int index = 1;
     int label = 1;
     bool smaller = false;
-    std::queue<Edge*> queue;
+    std::queue<Halfedge*> queue;
 
     // breadth first search
-    edge->target()->set_label(label++);
-    queue.push(edge);
+    halfedge->target()->set_label(label++);
+    queue.push(halfedge);
     while (!queue.empty()) {
-        Edge* first = queue.front()->twin();
-        Edge* current = first;
+        Halfedge* first = queue.front()->twin();
+        Halfedge* current = first;
         queue.pop();
 
         do {
@@ -390,17 +423,17 @@ void Code::compute_code(const Triangulation& triangulation) {
     initialize(triangulation);
     int m = triangulation.size();
     for (int i = 0; i < m; ++i) {
-        Edge* edge = triangulation.edge(i);
-        update(triangulation, edge, true);
-        update(triangulation, edge, false);
+        Halfedge* halfedge = triangulation.halfedge(i);
+        update(triangulation, halfedge, true);
+        update(triangulation, halfedge, false);
     }
 }
 
-void Code::compute_code(const Triangulation& triangulation, Edge* edge) {
+void Code::compute_code(const Triangulation& triangulation, Halfedge* halfedge) {
     initialize(triangulation);
-    Edge* twin = edge->twin();
-    update(triangulation, edge, true);
-    update(triangulation, edge, false);
+    Halfedge* twin = halfedge->twin();
+    update(triangulation, halfedge, true);
+    update(triangulation, halfedge, false);
     update(triangulation, twin, true);
     update(triangulation, twin, false);
 }
@@ -455,6 +488,49 @@ bool Code::operator >(const Code& other) const {
 
 bool Code::operator >=(const Code& other) const {
     return other <= *this;
+}
+
+/* ---------------------------------------------------------------------- *
+ * write functions implementation
+ * ---------------------------------------------------------------------- */
+
+/* ---------------------------------------------------------------------- *
+ * debug functions implementation
+ * ---------------------------------------------------------------------- */
+
+void check_triangulation(Triangulation& triangulation) {
+    int n = triangulation.order();
+    int m = triangulation.size();
+    assert(m == 2*(3*n-6));
+
+    // check vertex pointers
+    for (int i = 0; i < n; ++i) {
+        Vertex* vertex = triangulation.vertex(i);
+        assert(vertex == vertex->halfedge()->twin()->target());
+    }
+
+    // check halfedge pointers
+    for (int i = 0; i < m; ++i) {
+        Halfedge* halfedge = triangulation.halfedge(i);
+        assert(halfedge == halfedge->twin()->twin());
+        assert(halfedge == halfedge->prev()->next());
+        assert(halfedge == halfedge->next()->prev());
+        assert(halfedge == halfedge->next()->next()->next());
+        assert(halfedge == halfedge->prev()->prev()->prev());
+        assert(halfedge->next() == halfedge->prev()->prev());
+        assert(halfedge->prev() == halfedge->next()->next());
+        assert(halfedge->target() == halfedge->next()->twin()->target());
+    }
+
+    // handshaking lemma
+    int sum = 0;
+    for (int i = 0; i < n; ++i) {
+        Vertex* vertex = triangulation.vertex(i);
+        int degree = vertex->degree();
+        assert(degree >= 3);
+        sum += degree;
+    }
+    assert(sum == m);
 }
 
 /* ---------------------------------------------------------------------- *

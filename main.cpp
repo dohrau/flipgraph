@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <cassert>
 
 const int MODE_GENERATE = 0;
 const int MODE_DIAMETER = 1;
