@@ -1,19 +1,31 @@
 CC       = g++
-CC_FLAGS = -O3
+CC_FLAGS = -O3 -Wall
+
 MAIN     = main.cpp
+
 SRC_DIR  = src/
 OBJ_DIR  = obj/
-SRC      = $(wildcard $(SRC_DIR)*.cpp)
-OBJ      = $(addprefix $(OBJ_DIR),$(notdir $(SRC:.cpp=.o)))
+SRC      = $(MAIN) $(wildcard $(SRC_DIR)*.cpp)
+OBJ      = $(addprefix $(OBJ_DIR),$(SRC:.cpp=.o))
+DEP      = $(addprefix $(OBJ_DIR),$(SRC:.cpp=.d))
 
-flipgraph: $(MAIN) $(OBJ)
+
+flipgraph: $(OBJ)
 	$(CC) $(CC_FLAGS) $^ -o $@
 
-$(OBJ_DIR)%.o: $(SRC_DIR)%.cpp | $(OBJ_DIR)
-	$(CC) $(CC_FLAGS) -c $< -o $@
+$(OBJ_DIR)%.o: %.cpp | $(OBJ_DIR)$(SRC_DIR)
+	$(CC) $(CC_FLAGS) -MMD -MP -c $< -o $@
 
 $(OBJ_DIR):
 	mkdir $(OBJ_DIR)
 
+$(OBJ_DIR)$(SRC_DIR): | $(OBJ_DIR)
+	mkdir $(OBJ_DIR)$(SRC_DIR)
+
+-include $(DEP)
+
+.PHONY:clean default
+
 clean:
-	rm -f obj/*.o
+	rm -f -r $(OBJ_DIR)
+
