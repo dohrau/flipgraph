@@ -10,10 +10,12 @@
 
 const int MODE_GENERATE = 0;
 const int MODE_DIAMETER = 1;
+const int MODE_TRIANGULATION = 2;
 const int MODE_TEST = 42;
-
 const int DEFAULT_MODE = MODE_GENERATE;
+
 const int DEFAULT_N = 4;
+const int DEFAULT_INDEX = 1;
 
 int main(int argc, char* argv[]) {
     // option -m: mode
@@ -24,6 +26,8 @@ int main(int argc, char* argv[]) {
             mode = MODE_GENERATE;
         } else if (strcmp(option_m, "diameter") == 0) {
             mode = MODE_DIAMETER;
+        } else if (strcmp(option_m, "triangulation") == 0) {
+            mode = MODE_TRIANGULATION;
         } else if (strcmp(option_m, "test") == 0) {
             mode = MODE_TEST;
         }
@@ -32,6 +36,13 @@ int main(int argc, char* argv[]) {
     // option -n: number of vertices
     char* option_n = get_cmd_option(argc, argv, "-n");
     int n = (option_n) ? std::stoi(option_n) : DEFAULT_N;
+
+    // option -i: index
+    char* option_i = get_cmd_option(argc, argv, "-i");
+    int index = (option_i) ? std::stoi(option_i) : DEFAULT_INDEX;
+
+    // option -r: reverse indices
+    bool reverse = cmd_option_exists(argc, argv, "-r");
     
     // option -o: output file
     char* option_o = get_cmd_option(argc, argv, "-o");
@@ -56,11 +67,14 @@ int main(int argc, char* argv[]) {
             output_stream << diameter << std::endl;
             break;
         }
-        case MODE_TEST: {
+        case MODE_TRIANGULATION: {
             int size = (int) flip_graph.graph().size();
-            Code code = flip_graph.code(size - 1);
+            Code code = flip_graph.code(reverse ? size - index : index - 1);
             Triangulation triangulation(code);
             triangulation.write_to_stream(output_stream);
+            break;
+        }
+        case MODE_TEST: {
             break;
         }
     }

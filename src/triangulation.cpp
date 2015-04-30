@@ -193,10 +193,11 @@ void Triangulation::build_from_code(const Code& code) {
     int index = 0;
     for (int i = 0; i < n; ++i) {
         Vertex* vertex_a = vertex(i);
+        vertex_a->set_label(i + 1);
         
+        // connect vertex with its incident edges
         Halfedge* first = nullptr;
         Halfedge* last = nullptr;
-        
         while (code.symbol(++index)) {
             int j = (int) (code.symbol(index) - 1);
             Vertex* vertex_b = vertex(j);
