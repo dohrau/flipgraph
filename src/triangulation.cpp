@@ -24,6 +24,20 @@ void Vertex::set_halfedge(Halfedge* halfedge) {
     halfedge_ = halfedge;
 }
 
+#ifdef STORE_DEGREE
+void Vertex::set_degree(int degree) {
+    degree_ = degree;
+}
+
+void Vertex::increase_degree() {
+    degree_++;
+}
+
+void Vertex::decrease_degree() {
+    degree_--;
+}
+#endif
+
 int Vertex::label() const {
     return label_;
 }
@@ -33,6 +47,9 @@ Halfedge* Vertex::halfedge() const {
 }
 
 int Vertex::degree() const {
+    #ifdef STORE_DEGREE
+    return degree_;
+    #else
     int degree = 0;
     Halfedge* current = halfedge_;
     do {
@@ -40,6 +57,7 @@ int Vertex::degree() const {
         current = current->twin()->next();
     } while (current != halfedge_);
     return degree;
+    #endif
 }
 
 /* ---------------------------------------------------------------------- *
@@ -154,6 +172,13 @@ void Triangulation::expand_three(Halfedge* halfedge) {
     make_twins(halfedge_ab->next(), halfedge_bc->prev());
     make_twins(halfedge_bc->next(), halfedge_ca->prev());
     make_twins(halfedge_ca->next(), halfedge_ab->prev());
+
+    #ifdef STORE_DEGREE
+    vertex_a->increase_degree();
+    vertex_b->increase_degree();
+    vertex_c->increase_degree();
+    vertex_d->set_degree(3);
+    #endif
 }
 
 void Triangulation::make_canonical(int n) {
@@ -173,6 +198,12 @@ void Triangulation::make_canonical(int n) {
     make_twins(halfedge_ab, halfedge_ba);
     make_twins(halfedge_bc, halfedge_cb);
     make_twins(halfedge_ca, halfedge_ac);
+
+    #ifdef STORE_DEGREE
+    vertex_a->set_degree(2);
+    vertex_b->set_degree(2);
+    vertex_c->set_degree(2);
+    #endif
     
     // apply e3-expansion n-3 times
     for (int i = 3; i < n; ++i) {
@@ -194,6 +225,10 @@ void Triangulation::build_from_code(const Code& code) {
     for (int i = 0; i < n; ++i) {
         Vertex* vertex_a = vertex(i);
         vertex_a->set_label(i + 1);
+
+        #ifdef STORE_DEGREE
+        vertex_a->set_degree(0);
+        #endif
         
         // connect vertex with its incident edges
         Halfedge* first = nullptr;
@@ -201,6 +236,10 @@ void Triangulation::build_from_code(const Code& code) {
         while (code.symbol(++index)) {
             int j = (int) (code.symbol(index) - 1);
             Vertex* vertex_b = vertex(j);
+
+            #ifdef STORE_DEGREE
+            vertex_a->increase_degree();
+            #endif
             
             Halfedge* current;
             if (i < j) {
@@ -236,25 +275,32 @@ void Triangulation::copy(const Triangulation& triangulation) {
     std::map<Vertex*, Vertex*> vertex_map;
     std::map<Halfedge*, Halfedge*> edge_map;
     
+    // create vertices
     for (int i = 0; i < n; ++i) {
         Vertex* vertex = triangulation.vertex(i);
         Vertex* copy = new_vertex();
         vertex_map[vertex] = copy;
     }
     
+    // create edges
     for (int i = 0; i < m; ++i) {
         Halfedge* halfedge = triangulation.halfedge(i);
         Halfedge* copy = new_edge();
         edge_map[halfedge] = copy;
     }
     
+    // set members of vertices
     for (int i = 0; i < n; ++i) {
         Vertex* vertex = triangulation.vertex(i);
         Vertex* copy = vertex_map[vertex];
         copy->set_label(vertex->label());
         copy->set_halfedge(edge_map[vertex->halfedge()]);
+        #ifdef STORE_DEGREE
+        copy->set_degree(vertex->degree());
+        #endif
     }
     
+    // set members of edges
     for (int i = 0; i < m; ++i) {
         Halfedge* halfedge = triangulation.halfedge(i);
         Halfedge* copy = edge_map[halfedge];
@@ -309,12 +355,13 @@ bool Triangulation::is_representative(Halfedge* halfedge) const {
 }
 
 bool Triangulation::is_flippable(Halfedge* halfedge) const {
+    // get endpoints
     Vertex* vertex_a = halfedge->next()->target();
     Vertex* vertex_b = halfedge->twin()->next()->target();
-    Halfedge* first = vertex_a->halfedge();
-    Halfedge* current = first;
     
     // check whether vertex_a and vertex_b are adjacent
+    Halfedge* first = vertex_a->halfedge();
+    Halfedge* current = first;
     do {
         if (current->target() == vertex_b) { return false; }
         current = current->twin()->next();
@@ -341,6 +388,13 @@ void Triangulation::flip(Halfedge* halfedge) {
     twin->set_target(vertex_a);
     if (vertex_t->halfedge() == twin) { vertex_t->set_halfedge(edge_ta); }
     if (vertex_s->halfedge() == halfedge) { vertex_s->set_halfedge(edge_sb); }
+
+    #ifdef STORE_DEGREE
+    vertex_t->decrease_degree();
+    vertex_s->decrease_degree();
+    vertex_a->increase_degree();
+    vertex_b->increase_degree();
+    #endif
 }
 
 void Triangulation::write_to_stream(std::ostream& output_stream) const {
@@ -549,6 +603,17 @@ void check_triangulation(Triangulation& triangulation) {
     for (int i = 0; i < n; ++i) {
         Vertex* vertex = triangulation.vertex(i);
         assert(vertex == vertex->halfedge()->twin()->target());
+
+        #ifdef STORE_DEGREE
+        int degree = 0;
+        Halfedge* first = vertex->halfedge();
+        Halfedge* current = first;
+        do {
+            degree++;
+            current = current->twin()->next();
+        } while (current != first);
+        assert(vertex->degree() == degree);
+        #endif
     }
 
     // check halfedge pointers

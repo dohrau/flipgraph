@@ -7,6 +7,8 @@
 #ifndef __FGG_TRIANGULATION__
 #define __FGG_TRIANGULATION__
 
+#define STORE_DEGREE
+
 #include <vector>
 #include <iostream>
 
@@ -30,12 +32,28 @@ class Code;
     // an outgoing halfedge
     Halfedge* halfedge_;
 
+    #ifdef STORE_DEGREE
+    // this vertex's degree
+    int degree_;
+    #endif
+
 public:
     // sets this vertex's label to the specified label
     void set_label(int label);
 
     // makes the specified halfedge an outgoing halfedge
     void set_halfedge(Halfedge* halfedge_);
+
+    #ifdef STORE_DEGREE
+    // sets this vertex's degree to the specified value
+    void set_degree(int degree);
+
+    // increases this vertex's degree by one
+    void increase_degree();
+
+    // decreases this vertex's degree by one
+    void decrease_degree();
+    #endif
 
     // returns this vertex's label
     int label() const;
@@ -96,10 +114,8 @@ public:
 
 class Triangulation {
 public:
-    typedef Vertex* VertexHandle;
-
     // the vertex list type
-    typedef std::vector<VertexHandle> VertexList;
+    typedef std::vector<Vertex*> VertexList;
 
     // the edge list type
     typedef std::vector<Halfedge*> EdgeList;
@@ -124,7 +140,7 @@ private:
     EdgeList edges_;
 
     // creates and returns a new vertex
-    VertexHandle new_vertex();
+    Vertex* new_vertex();
 
     // creates and returns a new halfedge
     Halfedge* new_edge();
