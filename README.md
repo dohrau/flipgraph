@@ -4,7 +4,7 @@ Flipgraph is a program for generation of flip graphs for triangulations. It is p
 
 ## Usage
 
-Todo
+Coming soon...
 
 ## What is a Flip Graph?
 
