@@ -1,5 +1,6 @@
 #include "src/options.hpp"
 #include "src/flipgraph.hpp"
+#include "src/triangulation.hpp"
 #include "src/functions.hpp"
 
 #include <vector>
@@ -9,6 +10,7 @@
 
 const int MODE_GENERATE = 0;
 const int MODE_DIAMETER = 1;
+const int MODE_TEST = 42;
 
 const int DEFAULT_MODE = MODE_GENERATE;
 const int DEFAULT_N = 4;
@@ -22,6 +24,8 @@ int main(int argc, char* argv[]) {
             mode = MODE_GENERATE;
         } else if (strcmp(option_m, "diameter") == 0) {
             mode = MODE_DIAMETER;
+        } else if (strcmp(option_m, "test") == 0) {
+            mode = MODE_TEST;
         }
     }
 
@@ -39,17 +43,26 @@ int main(int argc, char* argv[]) {
     }
     std::ostream& output_stream = file_output ? file_stream : std::cout;
 
-    std::vector<std::vector<int> > graph;
-    compute_flip_graph(n, graph);
+    Flip_graph flip_graph;
+    flip_graph.compute(n);
 
     switch (mode) {
-    case MODE_GENERATE:
-        write_flip_graph(graph, output_stream);
-        break;
-    case MODE_DIAMETER:
-        int diameter = graph_diameter(graph);
-        output_stream << diameter << std::endl;
-        break;
+        case MODE_GENERATE: {
+            flip_graph.write_to_stream(output_stream);
+            break;
+        }
+        case MODE_DIAMETER: {
+            int diameter = graph_diameter(flip_graph.graph());
+            output_stream << diameter << std::endl;
+            break;
+        }
+        case MODE_TEST: {
+            int size = (int) flip_graph.graph().size();
+            Code code = flip_graph.code(size - 1);
+            Triangulation triangulation(code);
+            triangulation.write_to_stream(output_stream);
+            break;
+        }
     }
 
     // close output stream

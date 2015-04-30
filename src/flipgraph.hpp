@@ -1,19 +1,38 @@
 /* ---------------------------------------------------------------------- *
- * flipgraph.hpp
+ * generator.hpp
  *
  * author: jerome dohrau
  * ---------------------------------------------------------------------- */
 
-#ifndef __FG_FLIP_GRAPH__
-#define __FG_FLIP_GRAPH__
+#ifndef __FGG_FLIP_GRAPH__
+#define __FGG_FLIP_GRAPH__
+
+#include "triangulation.hpp"
 
 #include <vector>
 
-// computes the flip graph on all triangulations with n vertices
-void compute_flip_graph(int n, std::vector<std::vector<int> >& graph);
+/* ---------------------------------------------------------------------- *
+ * definition of the flip graph class
+ * ---------------------------------------------------------------------- */
 
-// writes the specified flip graph to the specified stream
-void write_flip_graph(std::vector<std::vector<int> >& graph, std::ostream& output_stream);
+class Flip_graph {
+public:
+    typedef std::vector<std::vector<int> > Graph;
+    typedef std::vector<Code> CodeList;
+
+private:
+    Graph graph_;
+    CodeList codes_;
+
+public:
+    void compute(int n);
+
+    const Graph& graph() const;
+
+    const Code& code(int i) const;
+
+    void write_to_stream(std::ostream& output_stream) const;  
+};
 
 #endif
 

@@ -303,11 +303,11 @@ Halfedge* Triangulation::halfedge(Vertex* vertex_a, Vertex* vertex_b) const {
     return nullptr;
 }
 
-bool Triangulation::is_representative(Halfedge* halfedge) {
+bool Triangulation::is_representative(Halfedge* halfedge) const {
     return halfedge < halfedge->twin();
 }
 
-bool Triangulation::is_flippable(Halfedge* halfedge) {
+bool Triangulation::is_flippable(Halfedge* halfedge) const {
     Vertex* vertex_a = halfedge->next()->target();
     Vertex* vertex_b = halfedge->twin()->next()->target();
     Halfedge* first = vertex_a->halfedge();
@@ -340,6 +340,38 @@ void Triangulation::flip(Halfedge* halfedge) {
     twin->set_target(vertex_a);
     if (vertex_t->halfedge() == twin) { vertex_t->set_halfedge(edge_ta); }
     if (vertex_s->halfedge() == halfedge) { vertex_s->set_halfedge(edge_sb); }
+}
+
+void Triangulation::write_to_stream(std::ostream& output_stream) const {
+    int n = order();
+    int m = size();
+    std::map<Vertex*, int> map;
+    
+    output_stream << "graph {" << std::endl;
+    
+    for (int i = 0; i < n; ++i) {
+        Vertex* vertex = this->vertex(i);
+        map[vertex] = i;
+        output_stream << "  v" << i;
+        output_stream << " [label=" << vertex->label() << "];";
+        output_stream << std::endl;
+    }
+    
+    for (int j = 0; j < m; ++j) {
+        Halfedge* halfedge = this->halfedge(j);
+        Halfedge* twin = halfedge->twin();
+        if (is_representative(halfedge)) {
+            Vertex* source = twin->target();
+            Vertex* target = halfedge->target();
+            std::string color = is_flippable(halfedge) ? "blue" : "red";
+            output_stream << "  v" << map[source];
+            output_stream << " -- v" << map[target];
+            output_stream << " [color=" << color << "];";
+            output_stream << std::endl;
+        }
+    }
+    
+    output_stream << "}" << std::endl;
 }
 
 /* ---------------------------------------------------------------------- *
@@ -490,9 +522,18 @@ bool Code::operator >=(const Code& other) const {
     return other <= *this;
 }
 
-/* ---------------------------------------------------------------------- *
- * write functions implementation
- * ---------------------------------------------------------------------- */
+void Code::write_to_stream(std::ostream& output_stream) const {
+    int n = (int) symbol(0);
+    int index = 0;
+    output_stream << n;
+    for (int i = 0; i < n; ++i) {
+        output_stream << ' ';
+        while (symbol(++index)) {
+            output_stream << (char) ('a' + symbol(index) - 1);
+        }
+    }
+    output_stream << std::endl;
+}
 
 /* ---------------------------------------------------------------------- *
  * debug functions implementation

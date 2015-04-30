@@ -4,8 +4,8 @@
  * author: jerome dohrau
  * ---------------------------------------------------------------------- */
 
-#ifndef __FG_TRIANGULATION__
-#define __FG_TRIANGULATION__
+#ifndef __FGG_TRIANGULATION__
+#define __FGG_TRIANGULATION__
 
 #include <vector>
 #include <iostream>
@@ -96,6 +96,14 @@ public:
 
 class Triangulation {
 public:
+    typedef Vertex* VertexHandle;
+
+    // the vertex list type
+    typedef std::vector<VertexHandle> VertexList;
+
+    // the edge list type
+    typedef std::vector<Halfedge*> EdgeList;
+
     // constructor that builds a canonical triangulation with n vertices
     Triangulation(int n);
 
@@ -110,13 +118,13 @@ public:
 
 private:
     // the list of vertices
-    std::vector<Vertex*> vertices_;
+    VertexList vertices_;
 
     // the list of edges
-    std::vector<Halfedge*> edges_;
+    EdgeList edges_;
 
     // creates and returns a new vertex
-    Vertex* new_vertex();
+    VertexHandle new_vertex();
 
     // creates and returns a new halfedge
     Halfedge* new_edge();
@@ -168,13 +176,16 @@ public:
     Halfedge* halfedge(Vertex* vertex_a, Vertex* vertex_b) const;
 
     // returns whether the specified halfedge or its twin is representative
-    bool is_representative(Halfedge* halfedge);
+    bool is_representative(Halfedge* halfedge) const;
 
     // returns whether the specified halfedge is flippable or not
-    bool is_flippable(Halfedge* halfedge);
+    bool is_flippable(Halfedge* halfedge) const;
 
     // flips the specified halfedge
     void flip(Halfedge* halfedge);
+
+    // writes the triangualtion to the specified stream
+    void write_to_stream(std::ostream& output_stream) const;
 };
 
 /* ---------------------------------------------------------------------- *
@@ -249,17 +260,14 @@ public:
     // returns whether the code is lexicographically greater than or
     // equal to the specified code or not
     bool operator >=(const Code& other) const;
+
+    // writes the code to the specified stream
+    void write_to_stream(std::ostream& output_stream) const;
 };
 
 /* ---------------------------------------------------------------------- *
- * function declarations
+ * debug function declaration
  * ---------------------------------------------------------------------- */
-
-// writes the specified triangulation to the specified stream
-void write_triangulation(Triangulation& triangulation, std::ostream& output_stream);
-
-// writes the specified code to the specified stream
-void write_code_alpha(Code& code, std::ostream& output_stream);
 
 // checks whether the specified triangulation is as it should be
 void check_triangulation(Triangulation& triangulation);

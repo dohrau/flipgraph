@@ -8,7 +8,7 @@
 
  #include <queue>
 
- int vertex_eccentricity(Graph& graph, int vertex) {
+ int vertex_eccentricity(const Graph& graph, int vertex) {
     int n = (int) graph.size();
     int result = 0;
 
@@ -38,7 +38,7 @@
     return result;
 }
 
-int graph_diameter(Graph& graph) {
+int graph_diameter(const Graph& graph) {
     int n = (int) graph.size();
     int result = 0;
 

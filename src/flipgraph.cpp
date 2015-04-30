@@ -1,5 +1,5 @@
 /* ---------------------------------------------------------------------- *
- * flipgraph.cpp
+ * generator.cpp
  *
  * author: jerome dohrau
  * ---------------------------------------------------------------------- */
@@ -13,9 +13,9 @@
 #include <iostream>
 #include <algorithm>
 
+typedef Flip_graph::Graph Graph;
+
 /* ---------------------------------------------------------------------- *
- * flip graph
- *
  * possible improvements
  *  - use vector<set<int>> as datastructure for graph
  *  - use indices.find() to check whether triangulation already exists and
@@ -23,8 +23,8 @@
  *  - only flip edges that are different in the context of isomorphism
  * ---------------------------------------------------------------------- */
  
-void compute_flip_graph(int n, std::vector<std::vector<int> >& graph) {
-    graph.clear();
+void Flip_graph::compute(int n) {
+    graph_.clear();
     int count = 0;
 
     std::queue<std::pair<Triangulation*, int> > queue;
@@ -32,14 +32,18 @@ void compute_flip_graph(int n, std::vector<std::vector<int> >& graph) {
 
     // build canonical triangulation on n vertices
     Triangulation* triangulation = new Triangulation(n);
+    Code* code = new Code(*triangulation);
 
     // add canonical triangulation
     int index = count++;
-    indices[Code(*triangulation)] = 0;
-    graph.push_back(std::vector<int>());
+    indices[*code] = 0;
+    graph_.push_back(std::vector<int>());
+    codes_.push_back(*code);
     queue.push(std::make_pair(triangulation, index));
 
-    // explore flip graph using a bfs
+    delete code;
+
+    // explore flip graph_ using a bfs
     while (!queue.empty()) {
         // get current triangulation
         triangulation = queue.front().first;
@@ -53,23 +57,26 @@ void compute_flip_graph(int n, std::vector<std::vector<int> >& graph) {
             if (triangulation->is_representative(halfedge) && triangulation->is_flippable(halfedge)) {
                 triangulation->flip(halfedge);
 
-                Code code(*triangulation);
+                code = new Code(*triangulation);
                 int other_index = 0;
                 // todo: faster if using indices.find() and reuse pointer to position
-                if (indices.count(code) == 0) {
+                if (indices.count(*code) == 0) {
                     // add newly discovered triangulation
                     other_index = count++;
-                    indices[code] = other_index;
-                    graph.push_back(std::vector<int>());
+                    indices[*code] = other_index;
+                    graph_.push_back(std::vector<int>());
+                    codes_.push_back(*code);
                     queue.push(std::make_pair(new Triangulation(*triangulation), other_index));
                 } else {
                     // get index of triangulation
-                    other_index = indices[code];
+                    other_index = indices[*code];
                 }
 
+                delete code;
+
                 // add halfedge if not already present
-                if (std::count(graph[index].begin(), graph[index].end(), other_index) == 0) {
-                    graph[index].push_back(other_index);
+                if (std::count(graph_[index].begin(), graph_[index].end(), other_index) == 0) {
+                    graph_[index].push_back(other_index);
                 }
 
                 // note: after two flips the halfedge and its twin are swapped
@@ -79,19 +86,25 @@ void compute_flip_graph(int n, std::vector<std::vector<int> >& graph) {
 
         delete triangulation;
     }
+
+
 }
 
-/* ---------------------------------------------------------------------- *
- * write functions
- * ---------------------------------------------------------------------- */
+const Graph& Flip_graph::graph() const {
+    return graph_;
+}
 
-void write_flip_graph(std::vector<std::vector<int> >& graph, std::ostream& output_stream) {
-    int size = (int) graph.size();
+const Code& Flip_graph::code(int i) const {
+    return codes_[i];
+}
+
+void Flip_graph::write_to_stream(std::ostream& output_stream) const {
+    int size = (int) graph_.size();
     output_stream << size << std::endl;
     for (int i = 0; i < size; ++i) {
-        int degree = (int) graph[i].size();
+        int degree = (int) graph_[i].size();
         output_stream << i;
-        for (int j = 0; j < degree; ++j) { output_stream << " " << graph[i][j]; }
+        for (int j = 0; j < degree; ++j) { output_stream << " " << graph_[i][j]; }
         output_stream << std::endl;
     }
 }

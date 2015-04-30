@@ -4,8 +4,8 @@
  * author: jerome dohrau
  * ---------------------------------------------------------------------- */
 
-#ifndef __FG_OPTIONS__
-#define __FG_OPTIONS__
+#ifndef __FGG_OPTIONS__
+#define __FGG_OPTIONS__
 
 #include <string>
 
