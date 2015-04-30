@@ -216,7 +216,6 @@ void Triangulation::make_canonical(int n) {
 }
 
 void Triangulation::build_from_code(const Code& code) {
-    int l = code.length();
     int n = (int) code.symbol(0);
     
     for (int i = 0; i < n; ++i) { new_vertex(); }
