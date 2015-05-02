@@ -1,3 +1,9 @@
+/* ---------------------------------------------------------------------- *
+ * main.cpp
+ *
+ * author: jerome dohrau
+ * ---------------------------------------------------------------------- */
+
 #include "src/options.hpp"
 #include "src/flipgraph.hpp"
 #include "src/triangulation.hpp"
@@ -11,6 +17,10 @@
 
 // #define NDEBUG
 
+/* ----------------------------------------------------------------------
+ * constants
+ * ---------------------------------------------------------------------- */
+
 const int MODE_GENERATE = 0;
 const int MODE_DIAMETER = 1;
 const int MODE_TRIANGULATION = 2;
@@ -22,8 +32,13 @@ const int FORMAT_CODE = 1;
 const int FORMAT_DOT = 2;
 const int DEFAULT_FORMAT = FORMAT_PLAIN;
 
+const int MINIMUM_N = 4;
 const int DEFAULT_N = 4;
 const int DEFAULT_INDEX = 1;
+
+/* ---------------------------------------------------------------------- *
+ * main function
+ * ---------------------------------------------------------------------- */
 
 int main(int argc, char* argv[]) {
     // option -m: mode
@@ -44,6 +59,7 @@ int main(int argc, char* argv[]) {
     // option -n: number of vertices
     char* option_n = get_cmd_option(argc, argv, "-n");
     int n = (option_n) ? std::stoi(option_n) : DEFAULT_N;
+    assert(n >= MINIMUM_N);
 
     // option -i: index
     char* option_i = get_cmd_option(argc, argv, "-i");
@@ -76,7 +92,7 @@ int main(int argc, char* argv[]) {
     }
 
     // option -t: show elapsed time
-    int show_time = cmd_option_exists(argc, argv, "-t");
+    bool show_time = cmd_option_exists(argc, argv, "-t");
 
     // compute flip graph
     clock_t start_time = clock();
@@ -104,11 +120,11 @@ int main(int argc, char* argv[]) {
             int i = reverse ? size - index : index - 1;
             assert(i >= 0 && i < size);
             Code code = flip_graph.code(i);
-            if (format == FORMAT_PLAIN || format == FORMAT_CODE) {
-                code.write_to_stream(output_stream);
-            } else {
+            if (format == FORMAT_DOT) {
                 Triangulation triangulation(code);
                 triangulation.write_to_stream(output_stream);
+            } else {
+                code.write_to_stream(output_stream);
             }
             break;
         }
@@ -122,3 +138,7 @@ int main(int argc, char* argv[]) {
 
     return 0;
 }
+
+/* ---------------------------------------------------------------------- *
+ * end of file
+ * ---------------------------------------------------------------------- */

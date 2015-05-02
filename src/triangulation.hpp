@@ -7,6 +7,8 @@
 #ifndef __FGG_TRIANGULATION__
 #define __FGG_TRIANGULATION__
 
+// if this macro is defined then the degree of a vertex is stored as a member
+// and tracked/updated. otherwise, it is computed upon request.
 #define STORE_DEGREE
 
 #include <vector>
