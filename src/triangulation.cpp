@@ -407,7 +407,7 @@ void Triangulation::write_to_stream(std::ostream& output_stream) const {
         Vertex* vertex = this->vertex(i);
         map[vertex] = i;
         output_stream << "  v" << i;
-        output_stream << " [label=" << vertex->label() << "];";
+        output_stream << " [label=" << (char) ('a' + vertex->label() - 1) << "];";
         output_stream << std::endl;
     }
     
