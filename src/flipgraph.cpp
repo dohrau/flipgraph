@@ -80,6 +80,8 @@ void Flip_graph::compute(int n) {
                 }
 
                 // note: after two flips the halfedge and its twin are swapped
+                // all other edges stay in place. this is crucial since
+                // we loop over all edges.
                 triangulation->flip(halfedge);
             }
         }
