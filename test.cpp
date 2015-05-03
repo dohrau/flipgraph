@@ -32,19 +32,17 @@ void print_list(std::vector<int>& list) {
 }
 
 /* ---------------------------------------------------------------------- *
- * distance via single
+ * distance via single triangulation
  * ---------------------------------------------------------------------- */
 
 void single_distance(const Graph& graph) {
     int size = (int) graph.size();
 
-    std::vector<int> vertices(1);
-    std::vector<int> histogram;
     std::vector<int> bounds;
+    std::vector<int> histogram;
 
     for (int i = 0; i < size; ++i) {
-        vertices[0] = i;
-        distance_histogram(graph, vertices, histogram);
+        distance_histogram(graph, i, histogram);
 
         int distance = (int) histogram.size() - 1;
         int last = histogram[distance];
@@ -61,6 +59,43 @@ void single_distance(const Graph& graph) {
     }
 
     std::cout << bounds.size()-1 << std::endl;
+    print_list(bounds);
+}
+
+void double_distance(const Graph& graph) {
+    int size = (int) graph.size();
+
+    std::vector<int> bounds;
+    std::vector<std::vector<int> > distances(size);
+
+    // precompute distances
+    for (int i = 0; i < size; ++i) {
+        distance_list(graph, i, distances[i]);
+    }
+
+    // check all pairs c1 and c2
+    for (int c1 = 0; c1 < size; ++c1) {
+        for (int c2 = c1; c2 < size; ++c2) {
+            // find worst pair for c1 and c2
+            int bound = 0;
+            for (int ta = 0; ta < size; ++ta) {
+                for (int tb = ta; tb < size; ++tb) {
+                    int d_a1 = distances[ta][c1];
+                    int d_a2 = distances[ta][c2];
+                    int d_b1 = distances[tb][c1];
+                    int d_b2 = distances[tb][c2];
+                    int best = std::min(d_a1 + d_b1, d_a2 + d_b2);
+                    bound = std::max(bound, best);
+                }
+            }
+            //
+            if (bounds.size() <= bound) {
+                bounds.resize(bound+1, 0);
+            }
+            bounds[bound]++;
+        }
+    }
+
     print_list(bounds);
 }
 
@@ -88,7 +123,8 @@ int main(int argc, char* argv[]) {
         std::cout << "flip graph generated in " << elapsed << "s" << std::endl;
     }
 
-    single_distance(flip_graph.graph());
+    //single_distance(flip_graph.graph());
+    double_distance(flip_graph.graph());
 
     return 0;
 }
