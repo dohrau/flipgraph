@@ -11,6 +11,10 @@
 // and tracked/updated. otherwise, it is computed upon request.
 #define STORE_DEGREE
 
+// if this macro is defined then the isomorphism code uses some heuristics.
+// these heuristics need the degree of the vertices ...
+#define HEURISTICS
+
 #include <vector>
 #include <iostream>
 

@@ -236,6 +236,10 @@ void Triangulation::build_from_code(const Code& code) {
     for (int i = 0; i < n; ++i) { new_vertex(); }
     
     int index = 0;
+    #ifdef HEURISTICS
+    int count = 1;
+    #endif
+
     for (int i = 0; i < n; ++i) {
         Vertex* vertex_a = vertex(i);
         vertex_a->set_label(i + 1);
@@ -249,6 +253,9 @@ void Triangulation::build_from_code(const Code& code) {
         Halfedge* last = nullptr;
         while (code.symbol(++index)) {
             int j = (int) (code.symbol(index) - 1);
+            #ifdef HEURISTICS
+            if (j >= n) { j = count++; }
+            #endif
             Vertex* vertex_b = vertex(j);
 
             #ifdef STORE_DEGREE
@@ -473,7 +480,12 @@ void Code::initialize(const Triangulation& triangulation) {
     int m = triangulation.size();
     length_ = n + m + 1;
     code_ = new unsigned char[length_];
+    #ifdef HEURISTICS
+    code_[0] = n;
+    for (int i = 1; i < length_; ++i) { code_[i] = 2*n; }
+    #else
     for (int i = 0; i < length_; ++i) { code_[i] = n; }
+    #endif
 }
 
 void Code::update(const Triangulation& triangulation, Halfedge* halfedge, bool clockwise) {
@@ -498,12 +510,18 @@ void Code::update(const Triangulation& triangulation, Halfedge* halfedge, bool c
 
         do {
             Vertex* vertex = current->target();
-            if (vertex->label() == 0) {
+            int symbol = vertex->label();
+
+            if (symbol == 0) {
                 vertex->set_label(label++);
                 queue.push(current);
+                #ifdef HEURISTICS
+                symbol = n + vertex->degree();
+                #else
+                symbol = vertex->label();
+                #endif
             }
-
-            int symbol = vertex->label();
+            
             if (smaller) {
                 code_[index] = symbol;
             } else if (symbol < code_[index]) {
@@ -526,8 +544,23 @@ void Code::update(const Triangulation& triangulation, Halfedge* halfedge, bool c
 void Code::compute_code(const Triangulation& triangulation) {
     initialize(triangulation);
     int m = triangulation.size();
+
+    #ifdef HEURISTICS
+    // compute minimal degree
+    int n = triangulation.order();
+    int min_degree = n;
+    for (int i = 0; i < n; ++i) {
+        Vertex* vertex = triangulation.vertex(i);
+        min_degree = std::min(min_degree, vertex->degree());
+    }
+    #endif
+
     for (int i = 0; i < m; ++i) {
         Halfedge* halfedge = triangulation.halfedge(i);
+        #ifdef HEURISTICS
+        // only copute code if target vertex has minimal degree
+        if (halfedge->target()->degree() > min_degree) { continue; }
+        #endif
         update(triangulation, halfedge, true);
         update(triangulation, halfedge, false);
     }
@@ -598,10 +631,17 @@ void Code::write_to_stream(std::ostream& output_stream) const {
     int n = (int) symbol(0);
     int index = 0;
     output_stream << n;
+    #ifdef HEURISTICS
+    int count = 1;
+    #endif
     for (int i = 0; i < n; ++i) {
         output_stream << ' ';
         while (symbol(++index)) {
-            output_stream << (char) ('a' + symbol(index) - 1);
+            int symbol = this->symbol(index);
+            #ifdef HEURISTICS
+            if (symbol > n) { symbol = ++count; }
+            #endif
+            output_stream << (char) ('a' + symbol - 1);
         }
     }
     output_stream << std::endl;
