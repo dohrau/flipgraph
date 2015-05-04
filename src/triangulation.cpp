@@ -656,12 +656,13 @@ void check_triangulation(Triangulation& triangulation) {
     int m = triangulation.size();
     assert(m == 2*(3*n-6));
 
-    // check vertex pointers
     for (int i = 0; i < n; ++i) {
+        // check vertex pointers
         Vertex* vertex = triangulation.vertex(i);
         assert(vertex == vertex->halfedge()->twin()->target());
 
         #ifdef STORE_DEGREE
+        // check vertex degree
         int degree = 0;
         Halfedge* first = vertex->halfedge();
         Halfedge* current = first;
@@ -673,8 +674,8 @@ void check_triangulation(Triangulation& triangulation) {
         #endif
     }
 
-    // check halfedge pointers
     for (int i = 0; i < m; ++i) {
+        // check halfedge pointers
         Halfedge* halfedge = triangulation.halfedge(i);
         assert(halfedge == halfedge->twin()->twin());
         assert(halfedge == halfedge->prev()->next());

@@ -118,13 +118,26 @@ int main(int argc, char* argv[]) {
     flip_graph.compute(n);
     clock_t end_time = clock();
 
-    if (show_time) {
+    /*if (show_time) {
         double elapsed = double(end_time - start_time) / CLOCKS_PER_SEC;
         std::cout << "flip graph generated in " << elapsed << "s" << std::endl;
     }
 
     //single_distance(flip_graph.graph());
-    double_distance(flip_graph.graph());
+    double_distance(flip_graph.graph());*/
+
+    for (int n = 7; n <= 13; ++n) {
+        for (int i = 0; i <= 10; ++i) {
+
+            clock_t start_time = clock();
+            Flip_graph flip_graph;
+            flip_graph.compute(n);
+            clock_t end_time = clock();
+            double elapsed = double(end_time - start_time) / CLOCKS_PER_SEC;
+
+            std::cout << n << ", " << elapsed << std::endl;
+        }
+    }
 
     return 0;
 }
