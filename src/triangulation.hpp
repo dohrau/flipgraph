@@ -27,7 +27,7 @@ class Code;
  * declaration of the vertex class
  * ---------------------------------------------------------------------- */
 
- class Vertex {
+class Vertex {
     // the label
     int label_;
 
@@ -72,6 +72,14 @@ public:
  * ---------------------------------------------------------------------- */ 
 
 class Halfedge {
+public:
+    // constructor that creates a halfedge with the specified id
+    Halfedge(int id);
+
+private:
+    // the id
+    int id_;
+
     // the target vertex
     Vertex* target_;
 
@@ -96,6 +104,9 @@ public:
 
     // sets the next halfedge to the specified halfedge
     void set_next(Halfedge* halfedge);
+
+    // returns the id
+    int id() const;
 
     // returns the target vertex
     Vertex* target() const;
@@ -139,7 +150,7 @@ private:
     VertexList vertices_;
 
     // the list of edges
-    EdgeList edges_;
+    EdgeList halfedges_;
 
     // creates and returns a new vertex
     Vertex* new_vertex();

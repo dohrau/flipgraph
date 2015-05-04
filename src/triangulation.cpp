@@ -64,6 +64,10 @@ int Vertex::degree() const {
  * implementation of the halfedge class
  * ---------------------------------------------------------------------- */
 
+Halfedge::Halfedge(int id) {
+    id_ = id;
+}
+
 void Halfedge::set_target(Vertex* vertex) {
     target_ = vertex;
 }
@@ -78,6 +82,10 @@ void Halfedge::set_prev(Halfedge* halfedge) {
 
 void Halfedge::set_next(Halfedge* halfedge) {
     next_ = halfedge;
+}
+
+int Halfedge::id() const {
+    return id_;
 }
 
 Vertex* Halfedge::target() const {
@@ -123,8 +131,9 @@ Vertex* Triangulation::new_vertex() {
 }
 
 Halfedge* Triangulation::new_edge() {
-    Halfedge* halfedge = new Halfedge();
-    edges_.push_back(halfedge);
+    int id = halfedges_.size();
+    Halfedge* halfedge = new Halfedge(id);
+    halfedges_.push_back(halfedge);
     return halfedge;
 }
 
@@ -182,6 +191,9 @@ void Triangulation::expand_three(Halfedge* halfedge) {
 }
 
 void Triangulation::make_canonical(int n) {
+    assert(vertices_.size() == 0);
+    assert(halfedges_.size() == 0);
+
     Vertex* vertex_a = new_vertex();
     Vertex* vertex_b = new_vertex();
     Vertex* vertex_c = new_vertex();
@@ -216,6 +228,9 @@ void Triangulation::make_canonical(int n) {
 }
 
 void Triangulation::build_from_code(const Code& code) {
+    assert(vertices_.size() == 0);
+    assert(halfedges_.size() == 0);
+
     int n = (int) code.symbol(0);
     
     for (int i = 0; i < n; ++i) { new_vertex(); }
@@ -269,6 +284,9 @@ void Triangulation::build_from_code(const Code& code) {
 }
 
 void Triangulation::copy(const Triangulation& triangulation) {
+    assert(vertices_.size() == 0);
+    assert(halfedges_.size() == 0);
+
     int n = triangulation.order();
     int m = triangulation.size();
     std::map<Vertex*, Vertex*> vertex_map;
@@ -316,10 +334,10 @@ void Triangulation::copy(const Triangulation& triangulation) {
 
 void Triangulation::clear() {
     int n = (int) vertices_.size();;
-    int m = (int) edges_.size();
+    int m = (int) halfedges_.size();
     for (int i = 0; i < n; ++i) { delete vertices_[i]; }
-    for (int j = 0; j < m; ++j) { delete edges_[j]; }
-    edges_.clear();
+    for (int j = 0; j < m; ++j) { delete halfedges_[j]; }
+    halfedges_.clear();
     vertices_.clear();
 }
 
@@ -328,7 +346,7 @@ int Triangulation::order() const {
 }
 
 int Triangulation::size() const {
-    return (int) edges_.size();
+    return (int) halfedges_.size();
 }
 
 Vertex* Triangulation::vertex(int i) const {
@@ -336,7 +354,7 @@ Vertex* Triangulation::vertex(int i) const {
 }
 
 Halfedge* Triangulation::halfedge(int i) const {
-    return edges_[i];
+    return halfedges_[i];
 }
 
 Halfedge* Triangulation::halfedge(Vertex* vertex_a, Vertex* vertex_b) const {
@@ -350,7 +368,7 @@ Halfedge* Triangulation::halfedge(Vertex* vertex_a, Vertex* vertex_b) const {
 }
 
 bool Triangulation::is_representative(Halfedge* halfedge) const {
-    return halfedge < halfedge->twin();
+    return halfedge->id() < halfedge->twin()->id();
 }
 
 bool Triangulation::is_flippable(Halfedge* halfedge) const {
