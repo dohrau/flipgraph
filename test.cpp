@@ -79,7 +79,7 @@ void double_distance(const Graph& graph) {
             // find worst pair for c1 and c2
             int bound = 0;
             for (int ta = 0; ta < size; ++ta) {
-                for (int tb = ta; tb < size; ++tb) {
+                for (int tb = ta+1; tb < size; ++tb) {
                     int d_a1 = distances[ta][c1];
                     int d_a2 = distances[ta][c2];
                     int d_b1 = distances[tb][c1];
