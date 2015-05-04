@@ -9,6 +9,7 @@
 
 #include <queue>
 #include <map>
+#include <set>
 #include <utility>
 #include <iostream>
 #include <algorithm>
@@ -52,27 +53,30 @@ void Flip_graph::compute(int n) {
 
         // loop through neighboring triangulations
         int m = triangulation->size();
+        //std::set<Code> edge_codes;
         for (int i = 0; i < m; ++i) {
             Halfedge* halfedge = triangulation->halfedge(i);
             if (triangulation->is_representative(halfedge) && triangulation->is_flippable(halfedge)) {
+                //Code edge_code(*triangulation, halfedge);
+                //if (edge_codes.find(edge_code) != edge_codes.end()) { continue; }
+                //edge_codes.insert(edge_code);
+
                 triangulation->flip(halfedge);
 
-                code = new Code(*triangulation);
+                Code triangulation_code(*triangulation);
                 int other_index = 0;
                 // todo: faster if using indices.find() and reuse pointer to position
-                if (indices.count(*code) == 0) {
+                if (indices.count(triangulation_code) == 0) {
                     // add newly discovered triangulation
                     other_index = count++;
-                    indices[*code] = other_index;
+                    indices[triangulation_code] = other_index;
                     graph_.push_back(std::vector<int>());
-                    codes_.push_back(*code);
+                    codes_.push_back(triangulation_code);
                     queue.push(std::make_pair(new Triangulation(*triangulation), other_index));
                 } else {
                     // get index of triangulation
-                    other_index = indices[*code];
+                    other_index = indices[triangulation_code];
                 }
-
-                delete code;
 
                 // add halfedge if not already present
                 if (std::count(graph_[index].begin(), graph_[index].end(), other_index) == 0) {
@@ -83,6 +87,7 @@ void Flip_graph::compute(int n) {
                 // all other edges stay in place. this is crucial since
                 // we loop over all edges.
                 triangulation->flip(halfedge);
+                
             }
         }
 
