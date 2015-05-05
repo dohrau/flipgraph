@@ -6,8 +6,6 @@ Flipgraph is a program for generation of flip graphs for triangulations. It is p
 
 The program has several modes that can be specified via the `-m` command line parameter. For instance, the command ` flipgraph -m generate -n 7` generates the flip graph on all triangulations with 7 vertices. The diameter of the same flip graph is computed by `flipgraph -m diameter -n 7`. Moreover, `flipgraph -m triangulation -n 7 -i 2` will output the second triangulation discovered during the exploration of the flip graph. Since the flip graph is explored using a breadth first search, the triangulations are ordered according to their distance to the canonical triangulation. This ordering can be reversed by adding the `-r` flag. That is, `flipgraph -m triangulation -n 7 -r -i 1` will output a triangulation that has maximal distance to the canonical triangulation.
 
-**Remark:** At the moment, the exact order in which the triangulations are discovered is not deterministic. Keep this in mind when outputting triangulations.
-
 ## What is a Flip Graph?
 
 A maximal planar graph is called a *triangulation* since all of its faces are triangles.
