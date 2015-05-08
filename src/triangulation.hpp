@@ -1,7 +1,5 @@
 /* ---------------------------------------------------------------------- *
  * triangulation.hpp
- *
- * author: jerome dohrau
  * ---------------------------------------------------------------------- */
 
 #ifndef __FGG_TRIANGULATION__
@@ -236,6 +234,9 @@ public:
 
     // constructor that copies the specified code
     Code(const Code& code);
+
+    // constructor that copies the code from the specified vector
+    Code(const std::vector<unsigned char>& code);
 
     // destructor
     ~Code();

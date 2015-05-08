@@ -1,10 +1,8 @@
 /* ---------------------------------------------------------------------- *
  * triangulation.cpp
- *
- * author: jerome dohrau
  * ---------------------------------------------------------------------- */
 
-// #define NDEBUG
+//#define NDEBUG
 
 #include "triangulation.hpp"
 
@@ -468,7 +466,13 @@ Code::Code(const Triangulation& triangulation, Halfedge* halfedge) {
 Code::Code(const Code& code) {
     length_ = code.length_;
     code_ = new unsigned char[length_];
-    for (int i = 0; i < length_; ++i) { code_[i] = code.symbol(i); }
+    for (int i = 0; i < length_; ++i) { set_symbol(i, code.symbol(i)); }
+}
+
+Code::Code(const std::vector<unsigned char>& code) {
+    length_ = (int) code.size();
+    code_ = new unsigned char[length_];
+    for (int i = 0; i < length_; ++i) { set_symbol(i, code[i]); }
 }
 
 Code::~Code() {
@@ -654,7 +658,7 @@ void Code::write_to_stream(std::ostream& output_stream) const {
 void check_triangulation(Triangulation& triangulation) {
     int n = triangulation.order();
     int m = triangulation.size();
-    assert(m == 2*(3*n-6));
+    assert(m == 2*(3*n - 6));
 
     for (int i = 0; i < n; ++i) {
         // check vertex pointers
