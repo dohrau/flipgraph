@@ -14,7 +14,7 @@ ALL_SRC  = $(MAIN) $(TEST) $(INC_SRC)
 
 MAIN_OBJ = $(addprefix $(OBJ_DIR),$(MAIN_SRC:.cpp=.o))
 TEST_OBJ = $(addprefix $(OBJ_DIR),$(TEST_SRC:.cpp=.o))
-ALL_DEP  = $(addprefix $(OBJ_DIR),$(ALL_SRC:.cpp=.d))
+ALL_DEP  = $(addprefix $(OBJ_DIR),$(ALL_SRC:.cpp=.d))ls
 
 flipgraph: $(MAIN_OBJ)
 	$(CC) $(CC_FLAGS) $^ -o $@
@@ -29,7 +29,6 @@ $(OBJ_DIR):
 	mkdir $(OBJ_DIR)
 
 $(OBJ_DIR)$(SRC_DIR): | $(OBJ_DIR)
-	mkdir $(OBJ_DIR)$(SRC_DIR)
 
 -include $(ALL_DEP)
 

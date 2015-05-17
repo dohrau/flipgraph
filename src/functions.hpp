@@ -9,6 +9,9 @@
 
 typedef std::vector<std::vector<int> > Graph;
 
+// coputes histogram from list of distances
+void list_to_histogram(std::vector<int>& distances, std::vector<int>& histogram);
+
 // computes the distances for all vertices to the specified vertex
 void distance_list(const Graph& graph, int vertex, std::vector<int>& distances);
 

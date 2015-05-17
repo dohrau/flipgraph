@@ -8,19 +8,17 @@
 
 #include <iostream>
 #include <ctime>
+#include <algorithm>
+#include <vector>
+#include <utility>
 #include <cassert>
+#include <string>
+#include <fstream>
 
 typedef Flip_graph::Graph Graph;
 
 /* ---------------------------------------------------------------------- *
- * constants
- * ---------------------------------------------------------------------- */
-
-const int MINIMUM_N = 4;
-const int DEFAULT_N = 4;
-
-/* ---------------------------------------------------------------------- *
- * print vector
+ * some helpful functions
  * ---------------------------------------------------------------------- */
 
 void print_list(std::vector<int>& list) {
@@ -29,6 +27,50 @@ void print_list(std::vector<int>& list) {
         std::cout << list[i] << " ";
     }
     std::cout << std::endl;
+}
+
+void read_code(std::vector<unsigned char>& code) {
+    std::string line;
+    std::getline (std::cin, line);
+
+    int n = 0;
+    int i = 0;
+    do {
+        n *= 10;
+        n += (int) line[i] - '0';
+    } while (line[++i] != ' ');
+
+    int m = 2*(3*n - 6);
+    int l = n + m + 1;
+
+    code.resize(l, 0);
+    code[0] = (unsigned char) n;
+
+    for (int j = i; j < i+l-1; ++j) {
+        unsigned char c = line[j];
+        if (c != ' ') { code[j-i] = c - 'a' + 1;}
+    }
+}
+
+void to_graph(Triangulation& triangulation, Graph& graph) {
+    int n = triangulation.order();
+    graph.clear();
+    graph.resize(n);
+
+    for (int i = 0; i < n; ++i) {
+        Vertex* vertex = triangulation.vertex(i);
+        vertex->set_label(i);
+    }
+
+    for (int i = 0; i < n; ++i) {
+        Vertex* vertex = triangulation.vertex(i);
+        Halfedge* first = vertex->halfedge();
+        Halfedge* current = first;
+        do {
+            graph[i].push_back(current->target()->label());
+            current = current->twin()->next();
+        } while (current != first);
+    }
 }
 
 /* ---------------------------------------------------------------------- *
@@ -99,33 +141,7 @@ void double_distance(const Graph& graph) {
     print_list(bounds);
 }
 
-/* ---------------------------------------------------------------------- *
- * main function
- * ---------------------------------------------------------------------- */
-
-int main(int argc, char* argv[]) {
-    // option -n: number of vertices
-    char* option_n = get_cmd_option(argc, argv, "-n");
-    int n = (option_n) ? std::stoi(option_n) : DEFAULT_N;
-    assert(n >= MINIMUM_N);
-
-    // option -t: show elapsed time
-    bool show_time = cmd_option_exists(argc, argv, "-t");
-
-    // compute flip graph
-    clock_t start_time = clock();
-    Flip_graph flip_graph;
-    flip_graph.compute(n);
-    clock_t end_time = clock();
-
-    /*if (show_time) {
-        double elapsed = double(end_time - start_time) / CLOCKS_PER_SEC;
-        std::cout << "flip graph generated in " << elapsed << "s" << std::endl;
-    }
-
-    //single_distance(flip_graph.graph());
-    double_distance(flip_graph.graph());*/
-
+void speed_test() {
     for (int n = 7; n <= 13; ++n) {
         for (int i = 0; i <= 10; ++i) {
 
@@ -138,7 +154,115 @@ int main(int argc, char* argv[]) {
             std::cout << n << ", " << elapsed << std::endl;
         }
     }
+}
 
+/* ---------------------------------------------------------------------- *
+ * main function
+ * ---------------------------------------------------------------------- */
+
+int main(int argc, char* argv[]) {
+    //int n = 12;
+    int n = 13;
+
+    Flip_graph flip_graph;
+    flip_graph.compute(n);
+
+    int size = (int) flip_graph.graph().size();
+
+
+    // precompute distances
+    std::vector<std::vector<int> > distances(size);
+    for (int i = 0; i < size; ++i) {
+        distance_list(flip_graph.graph(), i, distances[i]);
+    }
+
+    int eleven = 0;
+    int ten = 0;
+
+    for (int i = 0; i < size; ++i) {
+        std::vector<int> histogram;
+        list_to_histogram(distances[i], histogram);
+        int distance = (int) histogram.size() - 1;
+        int last = histogram[distance];
+        int bound = (last == 1) ? 2*distance - 1 : 2*distance;
+        //if (bound > 12) { continue; }
+        if (bound > 14) { continue; }
+
+        // triangulations in boundary
+        std::vector<int> list;
+        for (int k = 0; k < size; ++k) {
+            //assert (distances[i][k] <= 6);
+            assert (distances[i][k] <= 7);
+            //if (distances[i][k] == 6) {
+            if (distances[i][k] == 7) {
+                list.push_back(k);
+            }
+        }
+        int l = (int) list.size();
+        std::cout << "l = " << l << std::endl;
+
+        for (int j = i; j < size; ++j) {
+            int five = 0;
+            int six = 0;
+            for (int k = 0; k < l; ++k) {
+                //if (distances[j][list[k]] == 6) { six++; }
+                if (distances[j][list[k]] == 7) { six++; }
+                //if (distances[j][list[k]] == 5) { five++; }
+                if (distances[j][list[k]] == 6) { five++; }
+            }
+            if (six == 1 && five > 0) { eleven++; }
+            if (six == 0 && five > 1) { ten++; }
+        }
+    }
+
+    std::cout << "eleven = " << eleven << std::endl;
+    std::cout << "ten    = " << ten    << std::endl;
+
+    return 0;
+}
+
+int test(int argc, char* argv[]) {
+    // option -n: number of vertices
+    char* option_n = get_cmd_option(argc, argv, "-n");
+    int n = (option_n) ? std::stoi(option_n) : 6;
+
+    Flip_graph flip_graph;
+    flip_graph.compute(n);
+
+    int size = (int) flip_graph.graph().size();
+    std::vector<int> histogram;
+
+    std::vector<std::pair<int, std::pair<int, int> > > list;
+
+    for (int index = 0; index < size; ++index) {
+        distance_histogram(flip_graph.graph(), index, histogram);
+        int distance = (int) histogram.size() - 1;
+        int last = histogram[distance];
+        int prev = (last == 1) ? histogram[distance-1] : last;
+        int pairs = last * prev;
+        int bound = (last == 1) ? 2*distance-1 : 2*distance;
+
+        list.push_back(std::make_pair(bound, std::make_pair(pairs, index)));
+    }
+
+    sort(list.begin(), list.end());
+    int best_bound = list[0].first;
+
+    for (int i = 0; i < size; ++i) {
+        int bound = list[i].first;
+        int pairs = list[i].second.first;
+        int index = list[i].second.second;
+        if (bound > best_bound) break;
+
+        const Code& code = flip_graph.code(index);
+        Triangulation triangulation(code);
+
+        std::ofstream file_stream;
+        file_stream.open("graph_"+std::to_string(i)+".dot");
+        triangulation.write_to_stream(file_stream);
+        file_stream.close();
+    }
+    
     return 0;
 }
 

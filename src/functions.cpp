@@ -7,6 +7,20 @@
 #include <queue>
 #include <utility>
 
+void list_to_histogram(std::vector<int>& distances, std::vector<int>& histogram) {
+    int n = (int) distances.size();
+    int maximum = -1;
+    histogram.clear();
+    for (int i = 0; i < n; ++i) {
+        int distance = distances[i];
+        if (maximum < distance) {
+            histogram.resize(distance + 1, 0);
+            maximum = distance;
+        }
+        histogram[distance]++;
+    }
+}
+
 void distance_list(const Graph& graph, int vertex, std::vector<int>& distances) {
     std::vector<int> vertices(1, vertex);
     distance_list(graph, vertices, distances);
@@ -52,18 +66,7 @@ void distance_histogram(const Graph& graph, int vertex, std::vector<int>& histog
 void distance_histogram(const Graph& graph, std::vector<int>& vertices, std::vector<int>& histogram) {
     std::vector<int> distances;
     distance_list(graph, vertices, distances);
-
-    int n = (int) graph.size();
-    int maximum = -1;
-    histogram.clear();
-    for (int i = 0; i < n; ++i) {
-        int distance = distances[i];
-        if (maximum < distance) {
-            histogram.resize(distance + 1, 0);
-            maximum = distance;
-        }
-        histogram[distance]++;
-    }
+    list_to_histogram(distances, histogram);
 }
 
 int eccentricity(const Graph& graph, int vertex) {
