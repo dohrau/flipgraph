@@ -5,14 +5,6 @@
 #ifndef __FGG_TRIANGULATION__
 #define __FGG_TRIANGULATION__
 
-// if this macro is defined then the degree of a vertex is stored as a member
-// and tracked/updated. otherwise, it is computed upon request.
-#define STORE_DEGREE
-
-// if this macro is defined then the isomorphism code uses some heuristics.
-// these heuristics need the degree of the vertices ...
-#define HEURISTICS
-
 #include <vector>
 #include <iostream>
 
@@ -36,10 +28,8 @@ class Vertex {
     // an outgoing halfedge
     Halfedge* halfedge_;
 
-    #ifdef STORE_DEGREE
     // this vertex's degree
     int degree_;
-    #endif
 
 public:
     // sets this vertex's label to the specified label
@@ -48,7 +38,6 @@ public:
     // makes the specified halfedge an outgoing halfedge
     void set_halfedge(Halfedge* halfedge_);
 
-    #ifdef STORE_DEGREE
     // sets this vertex's degree to the specified value
     void set_degree(int degree);
 
@@ -57,7 +46,6 @@ public:
 
     // decreases this vertex's degree by one
     void decrease_degree();
-    #endif
 
     // returns this vertex's label
     int label() const;

@@ -22,7 +22,6 @@ void Vertex::set_halfedge(Halfedge* halfedge) {
     halfedge_ = halfedge;
 }
 
-#ifdef STORE_DEGREE
 void Vertex::set_degree(int degree) {
     degree_ = degree;
 }
@@ -34,7 +33,6 @@ void Vertex::increase_degree() {
 void Vertex::decrease_degree() {
     degree_--;
 }
-#endif
 
 int Vertex::label() const {
     return label_;
@@ -45,17 +43,7 @@ Halfedge* Vertex::halfedge() const {
 }
 
 int Vertex::degree() const {
-    #ifdef STORE_DEGREE
     return degree_;
-    #else
-    int degree = 0;
-    Halfedge* current = halfedge_;
-    do {
-        degree++;
-        current = current->twin()->next();
-    } while (current != halfedge_);
-    return degree;
-    #endif
 }
 
 /* ---------------------------------------------------------------------- *
@@ -173,6 +161,7 @@ void Triangulation::expand_three(Halfedge* halfedge) {
     Vertex* vertex_c = halfedge_bc->target();
     Vertex* vertex_d = new_vertex();
     
+    // perform expansion
     make_triangle(halfedge_ab, new_edge(), new_edge(), vertex_d, vertex_a, vertex_b);
     make_triangle(halfedge_bc, new_edge(), new_edge(), vertex_d, vertex_b, vertex_c);
     make_triangle(halfedge_ca, new_edge(), new_edge(), vertex_d, vertex_c, vertex_a);
@@ -180,12 +169,11 @@ void Triangulation::expand_three(Halfedge* halfedge) {
     make_twins(halfedge_bc->next(), halfedge_ca->prev());
     make_twins(halfedge_ca->next(), halfedge_ab->prev());
 
-    #ifdef STORE_DEGREE
+    // adjust degrees
     vertex_a->increase_degree();
     vertex_b->increase_degree();
     vertex_c->increase_degree();
     vertex_d->set_degree(3);
-    #endif
 }
 
 void Triangulation::make_canonical(int n) {
@@ -209,11 +197,10 @@ void Triangulation::make_canonical(int n) {
     make_twins(halfedge_bc, halfedge_cb);
     make_twins(halfedge_ca, halfedge_ac);
 
-    #ifdef STORE_DEGREE
+    // set degree of first three vertices
     vertex_a->set_degree(2);
     vertex_b->set_degree(2);
     vertex_c->set_degree(2);
-    #endif
     
     // apply e3-expansion n-3 times
     for (int i = 3; i < n; ++i) {
@@ -234,31 +221,21 @@ void Triangulation::build_from_code(const Code& code) {
     for (int i = 0; i < n; ++i) { new_vertex(); }
     
     int index = 0;
-    #ifdef HEURISTICS
     int count = 1;
-    #endif
 
     for (int i = 0; i < n; ++i) {
         Vertex* vertex_a = vertex(i);
         vertex_a->set_label(i + 1);
-
-        #ifdef STORE_DEGREE
         vertex_a->set_degree(0);
-        #endif
         
         // connect vertex with its incident edges
         Halfedge* first = nullptr;
         Halfedge* last = nullptr;
         while (code.symbol(++index)) {
             int j = (int) (code.symbol(index) - 1);
-            #ifdef HEURISTICS
             if (j >= n) { j = count++; }
-            #endif
             Vertex* vertex_b = vertex(j);
-
-            #ifdef STORE_DEGREE
             vertex_a->increase_degree();
-            #endif
             
             Halfedge* current;
             if (i < j) {
@@ -317,9 +294,7 @@ void Triangulation::copy(const Triangulation& triangulation) {
         Vertex* copy = vertex_map[vertex];
         copy->set_label(vertex->label());
         copy->set_halfedge(edge_map[vertex->halfedge()]);
-        #ifdef STORE_DEGREE
         copy->set_degree(vertex->degree());
-        #endif
     }
     
     // set members of edges
@@ -404,6 +379,7 @@ void Triangulation::flip(Halfedge* halfedge) {
     Halfedge* edge_sb = twin->next();
     Halfedge* edge_bt = twin->prev();
     
+    // perform flip
     make_triangle(halfedge, edge_bt, edge_ta);
     make_triangle(twin, edge_as, edge_sb);
     halfedge->set_target(vertex_b);
@@ -411,12 +387,11 @@ void Triangulation::flip(Halfedge* halfedge) {
     if (vertex_t->halfedge() == twin) { vertex_t->set_halfedge(edge_ta); }
     if (vertex_s->halfedge() == halfedge) { vertex_s->set_halfedge(edge_sb); }
 
-    #ifdef STORE_DEGREE
+    // update degrees
     vertex_t->decrease_degree();
     vertex_s->decrease_degree();
     vertex_a->increase_degree();
     vertex_b->increase_degree();
-    #endif
 }
 
 void Triangulation::write_to_stream(std::ostream& output_stream) const {
@@ -484,12 +459,8 @@ void Code::initialize(const Triangulation& triangulation) {
     int m = triangulation.size();
     length_ = n + m + 1;
     code_ = new unsigned char[length_];
-    #ifdef HEURISTICS
     code_[0] = n;
     for (int i = 1; i < length_; ++i) { code_[i] = 2*n; }
-    #else
-    for (int i = 0; i < length_; ++i) { code_[i] = n; }
-    #endif
 }
 
 void Code::update(const Triangulation& triangulation, Halfedge* halfedge, bool clockwise) {
@@ -519,11 +490,7 @@ void Code::update(const Triangulation& triangulation, Halfedge* halfedge, bool c
             if (symbol == 0) {
                 vertex->set_label(label++);
                 queue.push(current);
-                #ifdef HEURISTICS
                 symbol = n + vertex->degree();
-                #else
-                symbol = vertex->label();
-                #endif
             }
             
             if (smaller) {
@@ -549,7 +516,6 @@ void Code::compute_code(const Triangulation& triangulation) {
     initialize(triangulation);
     int m = triangulation.size();
 
-    #ifdef HEURISTICS
     // compute minimal degree
     int n = triangulation.order();
     int min_degree = n;
@@ -557,14 +523,11 @@ void Code::compute_code(const Triangulation& triangulation) {
         Vertex* vertex = triangulation.vertex(i);
         min_degree = std::min(min_degree, vertex->degree());
     }
-    #endif
 
     for (int i = 0; i < m; ++i) {
         Halfedge* halfedge = triangulation.halfedge(i);
-        #ifdef HEURISTICS
-        // only copute code if target vertex has minimal degree
+        // only copute codes if target vertex has minimal degree
         if (halfedge->target()->degree() > min_degree) { continue; }
-        #endif
         update(triangulation, halfedge, true);
         update(triangulation, halfedge, false);
     }
@@ -635,16 +598,12 @@ void Code::write_to_stream(std::ostream& output_stream) const {
     int n = (int) symbol(0);
     int index = 0;
     output_stream << n;
-    #ifdef HEURISTICS
     int count = 1;
-    #endif
     for (int i = 0; i < n; ++i) {
         output_stream << ' ';
         while (symbol(++index)) {
             int symbol = this->symbol(index);
-            #ifdef HEURISTICS
             if (symbol > n) { symbol = ++count; }
-            #endif
             output_stream << (char) ('a' + symbol - 1);
         }
     }
@@ -665,7 +624,6 @@ void check_triangulation(Triangulation& triangulation) {
         Vertex* vertex = triangulation.vertex(i);
         assert(vertex == vertex->halfedge()->twin()->target());
 
-        #ifdef STORE_DEGREE
         // check vertex degree
         int degree = 0;
         Halfedge* first = vertex->halfedge();
@@ -675,7 +633,6 @@ void check_triangulation(Triangulation& triangulation) {
             current = current->twin()->next();
         } while (current != first);
         assert(vertex->degree() == degree);
-        #endif
     }
 
     for (int i = 0; i < m; ++i) {
