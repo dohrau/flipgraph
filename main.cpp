@@ -40,9 +40,9 @@ const int DEFAULT_INDEX = 1;
  * main function
  * ---------------------------------------------------------------------- */
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     // option -m: mode
-    char* option_m = get_cmd_option(argc, argv, "-m");
+    char *option_m = get_cmd_option(argc, argv, "-m");
     int mode = DEFAULT_MODE;
     if (option_m) {
         if (strcmp(option_m, "generate") == 0) {
@@ -57,29 +57,29 @@ int main(int argc, char* argv[]) {
     }
 
     // option -n: number of vertices
-    char* option_n = get_cmd_option(argc, argv, "-n");
+    char *option_n = get_cmd_option(argc, argv, "-n");
     int n = (option_n) ? std::stoi(option_n) : DEFAULT_N;
     assert(n >= MINIMUM_N);
 
     // option -i: index
-    char* option_i = get_cmd_option(argc, argv, "-i");
+    char *option_i = get_cmd_option(argc, argv, "-i");
     int index = (option_i) ? std::stoi(option_i) : DEFAULT_INDEX;
 
     // option -r: reverse indices
     bool reverse = cmd_option_exists(argc, argv, "-r");
-    
+
     // option -o: output file
-    char* option_o = get_cmd_option(argc, argv, "-o");
+    char *option_o = get_cmd_option(argc, argv, "-o");
     bool file_output = false;
     std::ofstream file_stream;
     if (option_o) {
         file_output = true;
         file_stream.open(option_o);
     }
-    std::ostream& output_stream = file_output ? file_stream : std::cout;
+    std::ostream &output_stream = file_output ? file_stream : std::cout;
 
     // option -f: output format
-    char* option_f = get_cmd_option(argc, argv, "-f");
+    char *option_f = get_cmd_option(argc, argv, "-f");
     int format = DEFAULT_FORMAT;
     if (option_f) {
         if (strcmp(option_f, "plain") == 0) {

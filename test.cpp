@@ -21,7 +21,7 @@ typedef Flip_graph::Graph Graph;
  * some helpful functions
  * ---------------------------------------------------------------------- */
 
-void print_list(std::vector<int>& list) {
+void print_list(std::vector<int> &list) {
     int l = (int) list.size();
     for (int i = 0; i < l; ++i) {
         std::cout << list[i] << " ";
@@ -29,9 +29,9 @@ void print_list(std::vector<int>& list) {
     std::cout << std::endl;
 }
 
-void read_code(std::vector<unsigned char>& code) {
+void read_code(std::vector<unsigned char> &code) {
     std::string line;
-    std::getline (std::cin, line);
+    std::getline(std::cin, line);
 
     int n = 0;
     int i = 0;
@@ -40,32 +40,32 @@ void read_code(std::vector<unsigned char>& code) {
         n += (int) line[i] - '0';
     } while (line[++i] != ' ');
 
-    int m = 2*(3*n - 6);
+    int m = 2 * (3 * n - 6);
     int l = n + m + 1;
 
     code.resize(l, 0);
     code[0] = (unsigned char) n;
 
-    for (int j = i; j < i+l-1; ++j) {
+    for (int j = i; j < i + l - 1; ++j) {
         unsigned char c = line[j];
-        if (c != ' ') { code[j-i] = c - 'a' + 1;}
+        if (c != ' ') { code[j - i] = c - 'a' + 1; }
     }
 }
 
-void to_graph(Triangulation& triangulation, Graph& graph) {
+void to_graph(Triangulation &triangulation, Graph &graph) {
     int n = triangulation.order();
     graph.clear();
     graph.resize(n);
 
     for (int i = 0; i < n; ++i) {
-        Vertex* vertex = triangulation.vertex(i);
+        Vertex *vertex = triangulation.vertex(i);
         vertex->set_label(i);
     }
 
     for (int i = 0; i < n; ++i) {
-        Vertex* vertex = triangulation.vertex(i);
-        Halfedge* first = vertex->halfedge();
-        Halfedge* current = first;
+        Vertex *vertex = triangulation.vertex(i);
+        Halfedge *first = vertex->halfedge();
+        Halfedge *current = first;
         do {
             graph[i].push_back(current->target()->label());
             current = current->twin()->next();
@@ -77,7 +77,7 @@ void to_graph(Triangulation& triangulation, Graph& graph) {
  * distance via single triangulation
  * ---------------------------------------------------------------------- */
 
-void single_distance(const Graph& graph) {
+void single_distance(const Graph &graph) {
     int size = (int) graph.size();
 
     std::vector<int> bounds;
@@ -88,10 +88,10 @@ void single_distance(const Graph& graph) {
 
         int distance = (int) histogram.size() - 1;
         int last = histogram[distance];
-        int bound = (last == 1) ? 2*distance - 1 : 2*distance;
-        
+        int bound = (last == 1) ? 2 * distance - 1 : 2 * distance;
+
         if (bounds.size() <= bound) {
-            bounds.resize(bound+1, 0);
+            bounds.resize(bound + 1, 0);
         }
         bounds[bound]++;
 
@@ -100,11 +100,11 @@ void single_distance(const Graph& graph) {
         }
     }
 
-    std::cout << bounds.size()-1 << std::endl;
+    std::cout << bounds.size() - 1 << std::endl;
     print_list(bounds);
 }
 
-void double_distance(const Graph& graph) {
+void double_distance(const Graph &graph) {
     int size = (int) graph.size();
 
     std::vector<int> bounds;
@@ -121,7 +121,7 @@ void double_distance(const Graph& graph) {
             // find worst pair for c1 and c2
             int bound = 0;
             for (int ta = 0; ta < size; ++ta) {
-                for (int tb = ta+1; tb < size; ++tb) {
+                for (int tb = ta + 1; tb < size; ++tb) {
                     int d_a1 = distances[ta][c1];
                     int d_a2 = distances[ta][c2];
                     int d_b1 = distances[tb][c1];
@@ -132,7 +132,7 @@ void double_distance(const Graph& graph) {
             }
             //
             if (bounds.size() <= bound) {
-                bounds.resize(bound+1, 0);
+                bounds.resize(bound + 1, 0);
             }
             bounds[bound]++;
         }
@@ -160,7 +160,7 @@ void speed_test() {
  * main function
  * ---------------------------------------------------------------------- */
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     //int n = 12;
     int n = 13;
 
@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
         list_to_histogram(distances[i], histogram);
         int distance = (int) histogram.size() - 1;
         int last = histogram[distance];
-        int bound = (last == 1) ? 2*distance - 1 : 2*distance;
+        int bound = (last == 1) ? 2 * distance - 1 : 2 * distance;
         //if (bound > 12) { continue; }
         if (bound > 14) { continue; }
 
@@ -216,14 +216,14 @@ int main(int argc, char* argv[]) {
     }
 
     std::cout << "eleven = " << eleven << std::endl;
-    std::cout << "ten    = " << ten    << std::endl;
+    std::cout << "ten    = " << ten << std::endl;
 
     return 0;
 }
 
-int test(int argc, char* argv[]) {
+int test(int argc, char *argv[]) {
     // option -n: number of vertices
-    char* option_n = get_cmd_option(argc, argv, "-n");
+    char *option_n = get_cmd_option(argc, argv, "-n");
     int n = (option_n) ? std::stoi(option_n) : 6;
 
     Flip_graph flip_graph;
@@ -238,9 +238,9 @@ int test(int argc, char* argv[]) {
         distance_histogram(flip_graph.graph(), index, histogram);
         int distance = (int) histogram.size() - 1;
         int last = histogram[distance];
-        int prev = (last == 1) ? histogram[distance-1] : last;
+        int prev = (last == 1) ? histogram[distance - 1] : last;
         int pairs = last * prev;
-        int bound = (last == 1) ? 2*distance-1 : 2*distance;
+        int bound = (last == 1) ? 2 * distance - 1 : 2 * distance;
 
         list.push_back(std::make_pair(bound, std::make_pair(pairs, index)));
     }
@@ -254,15 +254,15 @@ int test(int argc, char* argv[]) {
         int index = list[i].second.second;
         if (bound > best_bound) break;
 
-        const Code& code = flip_graph.code(index);
+        const Code &code = flip_graph.code(index);
         Triangulation triangulation(code);
 
         std::ofstream file_stream;
-        file_stream.open("graph_"+std::to_string(i)+".dot");
+        file_stream.open("graph_" + std::to_string(i) + ".dot");
         triangulation.write_to_stream(file_stream);
         file_stream.close();
     }
-    
+
     return 0;
 }
 

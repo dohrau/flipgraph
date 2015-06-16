@@ -25,11 +25,11 @@ private:
 public:
     void compute(int n);
 
-    const Graph& graph() const;
+    const Graph &graph() const;
 
-    const Code& code(int i) const;
+    const Code &code(int i) const;
 
-    void write_to_stream(std::ostream& output_stream) const;  
+    void write_to_stream(std::ostream &output_stream) const;
 };
 
 #endif

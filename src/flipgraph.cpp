@@ -21,17 +21,17 @@ typedef Flip_graph::Graph Graph;
  *    reuse pointer to get index if it exists
  *  - only flip edges that are different in the context of isomorphism
  * ---------------------------------------------------------------------- */
- 
+
 void Flip_graph::compute(int n) {
     graph_.clear();
     int count = 0;
 
-    std::queue<std::pair<Triangulation*, int> > queue;
+    std::queue<std::pair<Triangulation *, int> > queue;
     std::map<Code, int> indices;
 
     // build canonical triangulation on n vertices
-    Triangulation* triangulation = new Triangulation(n);
-    Code* code = new Code(*triangulation);
+    Triangulation *triangulation = new Triangulation(n);
+    Code *code = new Code(*triangulation);
 
     // add canonical triangulation
     int index = count++;
@@ -53,7 +53,7 @@ void Flip_graph::compute(int n) {
         int m = triangulation->size();
         //std::set<Code> edge_codes;
         for (int i = 0; i < m; ++i) {
-            Halfedge* halfedge = triangulation->halfedge(i);
+            Halfedge *halfedge = triangulation->halfedge(i);
             if (triangulation->is_representative(halfedge) && triangulation->is_flippable(halfedge)) {
                 //Code edge_code(*triangulation, halfedge);
                 //if (edge_codes.find(edge_code) != edge_codes.end()) { continue; }
@@ -85,7 +85,7 @@ void Flip_graph::compute(int n) {
                 // all other edges stay in place. this is crucial since
                 // we loop over all edges.
                 triangulation->flip(halfedge);
-                
+
             }
         }
 
@@ -95,15 +95,15 @@ void Flip_graph::compute(int n) {
 
 }
 
-const Graph& Flip_graph::graph() const {
+const Graph &Flip_graph::graph() const {
     return graph_;
 }
 
-const Code& Flip_graph::code(int i) const {
+const Code &Flip_graph::code(int i) const {
     return codes_[i];
 }
 
-void Flip_graph::write_to_stream(std::ostream& output_stream) const {
+void Flip_graph::write_to_stream(std::ostream &output_stream) const {
     int size = (int) graph_.size();
     output_stream << size << std::endl;
     for (int i = 0; i < size; ++i) {
