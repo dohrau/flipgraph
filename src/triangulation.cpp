@@ -217,7 +217,7 @@ void Triangulation::build_first_triangle() {
 }
 
 void Triangulation::build_canonical(int n) {
-    assert(n >= 3);
+    assert(n >= 4);
 
     // create first triangle
     build_first_triangle();
@@ -234,7 +234,7 @@ void Triangulation::build_canonical(int n) {
 }
 
 void Triangulation::build_dominant_double_fan(int n) {
-    assert(n >= 3);
+    assert(n >= 4);
 
     // create first triangle
     build_first_triangle();
@@ -252,7 +252,7 @@ void Triangulation::build_dominant_double_fan(int n) {
 }
 
 void Triangulation::build_dominant_binary_tree(int n) {
-    assert(n >= 3);
+    assert(n >= 4);
 
     // create first triangle
     build_first_triangle();
