@@ -94,8 +94,20 @@ Halfedge *Halfedge::next() const {
  * implementation of the triangulation class
  * ---------------------------------------------------------------------- */
 
-Triangulation::Triangulation(int n) {
-    make_canonical(n);
+Triangulation::Triangulation(int n, int triangulation_type) {
+    switch (triangulation_type) {
+        case TRIANGULATION_CANONICAL:
+            build_canonical(n);
+            break;
+        case TRIANGULATION_DOMINANT_DOUBLE_FAN:
+            build_dominant_double_fan(n);
+            break;
+        case TRIANGULATION_DOMINANT_BINARY_TREE:
+            build_dominant_binary_tree(n);
+            break;
+        default:
+            build_canonical(n);
+    }
 }
 
 Triangulation::Triangulation(const Code &code) {
@@ -176,11 +188,11 @@ void Triangulation::expand_three(Halfedge *halfedge) {
     vertex_d->set_degree(3);
 }
 
-void Triangulation::make_canonical(int n) {
-    assert(n >= 3);
+void Triangulation::build_first_triangle() {
     assert(vertices_.empty());
     assert(halfedges_.empty());
 
+    // create vertices and edges of first triangle
     Vertex *vertex_a = new_vertex();
     Vertex *vertex_b = new_vertex();
     Vertex *vertex_c = new_vertex();
@@ -202,15 +214,66 @@ void Triangulation::make_canonical(int n) {
     vertex_a->set_degree(2);
     vertex_b->set_degree(2);
     vertex_c->set_degree(2);
+}
+
+void Triangulation::build_canonical(int n) {
+    assert(n >= 3);
+
+    // create first triangle
+    build_first_triangle();
+    Halfedge *halfedge = this->halfedge(0);
 
     // apply e3-expansion n-3 times
     for (int i = 3; i < n; ++i) {
-        expand_three(halfedge_ab);
+        expand_three(halfedge);
     }
 
 #ifndef NDEBUG
     check_triangulation(*this);
 #endif
+}
+
+void Triangulation::build_dominant_double_fan(int n) {
+    assert(n >= 3);
+
+    // create first triangle
+    build_first_triangle();
+    Halfedge *halfedge_a = halfedge(0);
+    Halfedge *halfedge_b = halfedge_a->next();
+
+    // create all other triangles by applying e3-expansions
+    for (int i = 3; i < n; ++i) {
+        if (i % 2 == 0) {
+            expand_three(halfedge_a);
+        } else {
+            expand_three(halfedge_b);
+        }
+    }
+}
+
+void Triangulation::build_dominant_binary_tree(int n) {
+    assert(n >= 3);
+
+    // create first triangle
+    build_first_triangle();
+    Halfedge *halfedge = this->halfedge(0);
+
+    expand_three(halfedge);
+
+    std::queue<Halfedge *> queue;
+    queue.push(halfedge->twin());
+    queue.push(halfedge->prev()->twin());
+    queue.push(halfedge->next()->twin());
+
+    for (int i = 4; i < n; ++i) {
+        halfedge = queue.front();
+        queue.pop();
+
+        expand_three(halfedge);
+
+        queue.push(halfedge->prev()->twin());
+        queue.push(halfedge->next()->twin());
+    }
 }
 
 void Triangulation::build_from_code(const Code &code) {

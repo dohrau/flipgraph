@@ -9,6 +9,14 @@
 #include <iostream>
 
 /* ---------------------------------------------------------------------- *
+ * constants
+ * ---------------------------------------------------------------------- */
+
+const int TRIANGULATION_CANONICAL = 1;
+const int TRIANGULATION_DOMINANT_DOUBLE_FAN = 2;
+const int TRIANGULATION_DOMINANT_BINARY_TREE = 3;
+
+/* ---------------------------------------------------------------------- *
  * forward declarations
  * ---------------------------------------------------------------------- */
 
@@ -126,8 +134,10 @@ public:
     // the edge list type
     typedef std::vector<Halfedge *> EdgeList;
 
-    // constructor that builds a canonical triangulation with n vertices
-    Triangulation(int n);
+    // constructor that builds triangulation with n vertices.
+    // the second argument determines the structure of the triangulation.
+    // if only one argument is given the canonical triangulation is built.
+    Triangulation(int n, int triangulation_type = TRIANGULATION_CANONICAL);
 
     // constructor that builds a triangulation from the specified code
     Triangulation(const Code &code);
@@ -169,8 +179,15 @@ private:
     // performs an e3-expansion at the specified halfedge
     void expand_three(Halfedge *halfedge);
 
+    // builds the first triangle of the triangulation
+    void build_first_triangle();
+
     // builds a canonical triangulation with n vertices
-    void make_canonical(int n);
+    void build_canonical(int n);
+
+    void build_dominant_double_fan(int n);
+
+    void build_dominant_binary_tree(int n);
 
     // builds a triangulation form the specified code
     void build_from_code(const Code &code);
