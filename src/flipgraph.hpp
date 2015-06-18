@@ -13,7 +13,7 @@
  * definition of the flip graph class
  * ---------------------------------------------------------------------- */
 
-class Flip_graph {
+class FlipGraph {
 public:
     typedef std::vector<std::vector<int> > Graph;
     typedef std::vector<Code> CodeList;

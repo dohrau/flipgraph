@@ -12,7 +12,7 @@
 #include <iostream>
 #include <algorithm>
 
-typedef Flip_graph::Graph Graph;
+typedef FlipGraph::Graph Graph;
 
 /* ---------------------------------------------------------------------- *
  * possible improvements
@@ -22,7 +22,7 @@ typedef Flip_graph::Graph Graph;
  *  - only flip edges that are different in the context of isomorphism
  * ---------------------------------------------------------------------- */
 
-void Flip_graph::compute(int n) {
+void FlipGraph::compute(int n) {
     graph_.clear();
     int count = 0;
 
@@ -95,15 +95,15 @@ void Flip_graph::compute(int n) {
 
 }
 
-const Graph &Flip_graph::graph() const {
+const Graph &FlipGraph::graph() const {
     return graph_;
 }
 
-const Code &Flip_graph::code(int i) const {
+const Code &FlipGraph::code(int i) const {
     return codes_[i];
 }
 
-void Flip_graph::write_to_stream(std::ostream &output_stream) const {
+void FlipGraph::write_to_stream(std::ostream &output_stream) const {
     int size = (int) graph_.size();
     output_stream << size << std::endl;
     for (int i = 0; i < size; ++i) {
