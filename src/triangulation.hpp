@@ -185,8 +185,10 @@ private:
     // builds a canonical triangulation with n vertices
     void build_canonical(int n);
 
+    // builds a triangulation with one dominant vertex where the rest forms a double fan
     void build_dominant_double_fan(int n);
 
+    // builds a triangualtion with one dominant vertex where the rest forms a binary tree
     void build_dominant_binary_tree(int n);
 
     // builds a triangulation form the specified code
@@ -204,6 +206,15 @@ public:
 
     // returns the number of edges
     int size() const;
+
+    // returns the minimal degree among all vertices
+    int min_degree() const;
+
+    // returns the maximal degree among all vertices
+    int max_degree() const;
+
+    // returns whether the triangulation has a dominant vertex or not
+    bool has_dominant_vertex() const;
 
     // returns the i-th vertex
     Vertex *vertex(int i) const;

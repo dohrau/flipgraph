@@ -393,6 +393,26 @@ int Triangulation::size() const {
     return (int) halfedges_.size();
 }
 
+int Triangulation::min_degree() const {
+    int minimum = order();
+    for (Vertex *vertex : vertices_) {
+        minimum = std::min(minimum, vertex->degree());
+    }
+    return minimum;
+}
+
+int Triangulation::max_degree() const {
+    int maximum = 0;
+    for (Vertex *vertex: vertices_) {
+        maximum = std::max(maximum, vertex->degree());
+    }
+    return maximum;
+}
+
+bool Triangulation::has_dominant_vertex() const {
+    return max_degree() == order() - 1;
+}
+
 Vertex *Triangulation::vertex(int i) const {
     return vertices_[i];
 }
