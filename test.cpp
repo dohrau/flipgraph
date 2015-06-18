@@ -24,7 +24,7 @@ void print_list(std::vector<int> &list) {
  * ---------------------------------------------------------------------- */
 
 int main(int argc, char *argv[]) {
-    int n = 13;
+    int n = 6;
 
     Triangulation double_fan(n, TRIANGULATION_DOMINANT_DOUBLE_FAN);
     Code double_fan_code(double_fan);
@@ -39,6 +39,7 @@ int main(int argc, char *argv[]) {
     int size = graph.size();
 
     std::vector<int> bounds;
+    std::vector<int> dominant_bounds;
     std::vector<int> histogram;
 
     for (int i = 0; i < size; ++i) {
@@ -53,18 +54,28 @@ int main(int argc, char *argv[]) {
         }
         bounds[bound]++;
 
+        Triangulation triangulation(flip_graph.code(i));
+        if (triangulation.has_dominant_vertex()) {
+            if (dominant_bounds.size() <= bound) {
+                dominant_bounds.resize(bound + 1, 0);
+            }
+            dominant_bounds[bound]++;
+        }
+
         if (i == 0) {
             std::cout << "canonical : " << bound << std::endl;
         }
         if (flip_graph.code(i) == double_fan_code) {
             std::cout << "double fan: " << bound << std::endl;
-        } else if (flip_graph.code(i) == binary_tree_code) {
+        }
+        if (flip_graph.code(i) == binary_tree_code) {
             std::cout << "binary tree: " << bound << std::endl;
         }
     }
 
     std::cout << bounds.size() - 1 << std::endl;
     print_list(bounds);
+    print_list(dominant_bounds);
 
     return 0;
 }
