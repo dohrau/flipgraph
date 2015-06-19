@@ -99,8 +99,11 @@ Triangulation::Triangulation(int n, int triangulation_type) {
         case TRIANGULATION_CANONICAL:
             build_canonical(n);
             break;
-        case TRIANGULATION_DOMINANT_DOUBLE_FAN:
-            build_dominant_double_fan(n);
+        case TRIANGULATION_DOMINANT_ZIG_ZAG:
+            build_dominant_zig_zag(n);
+            break;
+        case TRIANGULATION_DOMINANT_TWIN_STAR:
+            build_dominant_twin_star(n);
             break;
         case TRIANGULATION_DOMINANT_BINARY_TREE:
             build_dominant_binary_tree(n);
@@ -233,7 +236,7 @@ void Triangulation::build_canonical(int n) {
 #endif
 }
 
-void Triangulation::build_dominant_double_fan(int n) {
+void Triangulation::build_dominant_twin_star(int n) {
     assert(n >= 4);
 
     // create first triangle
@@ -243,10 +246,25 @@ void Triangulation::build_dominant_double_fan(int n) {
 
     // create all other triangles by applying e3-expansions
     for (int i = 3; i < n; ++i) {
+        expand_three(halfedge_a);
+        std::swap(halfedge_a, halfedge_b);
+    }
+}
+
+void Triangulation::build_dominant_zig_zag(int n) {
+    assert(n >= 4);
+
+    // create first triangle
+    build_first_triangle();
+    Halfedge *halfedge = this->halfedge(0);
+
+    // create all other triangles by applying e3-expansions
+    for (int i = 3; i < n; ++i) {
+        expand_three(halfedge);
         if (i % 2 == 0) {
-            expand_three(halfedge_a);
+            halfedge = halfedge->prev()->twin();
         } else {
-            expand_three(halfedge_b);
+            halfedge = halfedge->next()->twin();
         }
     }
 }

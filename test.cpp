@@ -3,9 +3,11 @@
  * ---------------------------------------------------------------------- */
 
 #include <iostream>
+#include <fstream>
 #include "src/triangulation.hpp"
 #include "src/flipgraph.hpp"
 #include "src/functions.hpp"
+#include "src/options.hpp"
 
 /* ---------------------------------------------------------------------- *
  * helper functions
@@ -24,10 +26,17 @@ void print_list(std::vector<int> &list) {
  * ---------------------------------------------------------------------- */
 
 int main(int argc, char *argv[]) {
-    int n = 6;
+    char *option_n = get_cmd_option(argc, argv, "-n");
+    int n = (option_n) ? std::stoi(option_n) : 6;
 
-    Triangulation double_fan(n, TRIANGULATION_DOMINANT_DOUBLE_FAN);
-    Code double_fan_code(double_fan);
+    Triangulation canonical(n);
+    Code canonical_code(canonical);
+
+    Triangulation twin_star(n, TRIANGULATION_DOMINANT_TWIN_STAR);
+    Code twin_star_code(twin_star);
+
+    Triangulation zig_zag(n, TRIANGULATION_DOMINANT_ZIG_ZAG);
+    Code zig_zag_code(zig_zag);
 
     Triangulation binary_tree(n, TRIANGULATION_DOMINANT_BINARY_TREE);
     Code binary_tree_code(binary_tree);
@@ -65,8 +74,11 @@ int main(int argc, char *argv[]) {
         if (i == 0) {
             std::cout << "canonical : " << bound << std::endl;
         }
-        if (flip_graph.code(i) == double_fan_code) {
-            std::cout << "double fan: " << bound << std::endl;
+        if (flip_graph.code(i) == twin_star_code) {
+            std::cout << "twin star: " << bound << std::endl;
+        }
+        if (flip_graph.code(i) == zig_zag_code) {
+            std::cout << "zig zag: " << bound << std::endl;
         }
         if (flip_graph.code(i) == binary_tree_code) {
             std::cout << "binary tree: " << bound << std::endl;
@@ -75,6 +87,7 @@ int main(int argc, char *argv[]) {
 
     std::cout << bounds.size() - 1 << std::endl;
     print_list(bounds);
+    std::cout << dominant_bounds.size() - 1 << std::endl;
     print_list(dominant_bounds);
 
     return 0;

@@ -13,8 +13,9 @@
  * ---------------------------------------------------------------------- */
 
 const int TRIANGULATION_CANONICAL = 1;
-const int TRIANGULATION_DOMINANT_DOUBLE_FAN = 2;
-const int TRIANGULATION_DOMINANT_BINARY_TREE = 3;
+const int TRIANGULATION_DOMINANT_ZIG_ZAG = 2;
+const int TRIANGULATION_DOMINANT_TWIN_STAR = 3;
+const int TRIANGULATION_DOMINANT_BINARY_TREE = 4;
 
 /* ---------------------------------------------------------------------- *
  * forward declarations
@@ -185,8 +186,11 @@ private:
     // builds a canonical triangulation with n vertices
     void build_canonical(int n);
 
-    // builds a triangulation with one dominant vertex where the rest forms a double fan
-    void build_dominant_double_fan(int n);
+    // builds a triangulation with one dominant vertex where the rest forms a twin star
+    void build_dominant_twin_star(int n);
+
+    // builds a triangulation with one dominant vertex where the rest forms a bistar
+    void build_dominant_zig_zag(int n);
 
     // builds a triangualtion with one dominant vertex where the rest forms a binary tree
     void build_dominant_binary_tree(int n);
