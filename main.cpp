@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
 
     // compute flip graph
     clock_t start_time = clock();
-    Flip_graph flip_graph;
+    FlipGraph flip_graph;
     flip_graph.compute(n);
     clock_t end_time = clock();
 

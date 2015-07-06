@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <assert.h>
 #include "src/triangulation.hpp"
 #include "src/flipgraph.hpp"
 #include "src/functions.hpp"
@@ -22,12 +23,11 @@ void print_list(std::vector<int> &list) {
 }
 
 /* ---------------------------------------------------------------------- *
- * main function
+ * dominant canonical triangulations
  * ---------------------------------------------------------------------- */
 
-int main(int argc, char *argv[]) {
-    char *option_n = get_cmd_option(argc, argv, "-n");
-    int n = (option_n) ? std::stoi(option_n) : 6;
+void dominant_canonical_triangulations(int n) {
+    assert(n >= 6);
 
     Triangulation canonical(n);
     Code canonical_code(canonical);
@@ -89,6 +89,23 @@ int main(int argc, char *argv[]) {
     print_list(bounds);
     std::cout << dominant_bounds.size() - 1 << std::endl;
     print_list(dominant_bounds);
+}
+
+/* ---------------------------------------------------------------------- *
+ * main function
+ * ---------------------------------------------------------------------- */
+
+int main(int argc, char *argv[]) {
+    char *option_n = get_cmd_option(argc, argv, "-n");
+    int n = (option_n) ? std::stoi(option_n) : 4;
+
+    FlipGraph flip_graph;
+    flip_graph.compute(n);
+
+    std::vector<int> histogram;
+    distance_histogram(flip_graph.graph(), 0, histogram);
+
+    print_list(histogram);
 
     return 0;
 }
