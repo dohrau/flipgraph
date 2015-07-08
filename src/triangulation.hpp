@@ -205,6 +205,9 @@ protected:
     // builds a triangualtion with one dominant vertex where the rest forms a binary tree
     void build_dominant_binary_tree(int n);
 
+    // builds a canonical outerplanar triangulation
+    void build_outerplanar(int n);
+
     // builds a triangulation form the specified code
     void build_from_code(const Code &code);
 

@@ -99,13 +99,8 @@ int main(int argc, char *argv[]) {
     char *option_n = get_cmd_option(argc, argv, "-n");
     int n = (option_n) ? std::stoi(option_n) : 4;
 
-    FlipGraph flip_graph;
-    flip_graph.compute(n);
-
-    std::vector<int> histogram;
-    distance_histogram(flip_graph.graph(), 0, histogram);
-
-    print_list(histogram);
+    Triangulation outerplanar(n, TRIANGULAITON_OUTERPLANAR);
+    outerplanar.write_to_stream(std::cout);
 
     return 0;
 }

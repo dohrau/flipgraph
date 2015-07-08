@@ -110,6 +110,9 @@ Triangulation::Triangulation(int n, int triangulation_type) {
         case TRIANGULATION_DOMINANT_BINARY_TREE:
             build_dominant_binary_tree(n);
             break;
+        case TRIANGULAITON_OUTERPLANAR:
+            build_outerplanar(n);
+            break;
         default:
             build_canonical(n);
     }
@@ -212,7 +215,6 @@ void Triangulation::split(Halfedge *halfedge) {
     Vertex *vertex_b = halfedge_am->target();
     Vertex *vertex_c = halfedge_bc->target();
     Vertex *vertex_m = new_vertex();
-    make_fixed(halfedge_bm);
 
     // perform split
     make_triangle(halfedge_am, halfedge_mc, halfedge_ca, vertex_c, vertex_a, vertex_m);
@@ -221,6 +223,8 @@ void Triangulation::split(Halfedge *halfedge) {
     make_twins(halfedge_cm, halfedge_mc);
     make_consecutive(halfedge_ma->prev(), halfedge_bm);
     make_consecutive(halfedge_bm, halfedge_ma);
+    make_fixed(halfedge_bm);
+    halfedge_bm->set_target(vertex_m);
 
     // adjust degrees
     vertex_c->increase_degree();
@@ -327,6 +331,21 @@ void Triangulation::build_dominant_binary_tree(int n) {
 
         queue.push(halfedge->prev()->twin());
         queue.push(halfedge->next()->twin());
+    }
+}
+
+void Triangulation::build_outerplanar(int n) {
+    assert(n >= 4);
+
+    // create first triangle
+    build_first_triangle();
+    Halfedge *halfedge = this->halfedge(0);
+    make_fixed(halfedge);
+    make_fixed(halfedge->prev());
+    make_fixed(halfedge->next());
+
+    for (int i = 3; i < n; ++i) {
+        split(halfedge);
     }
 }
 
@@ -543,14 +562,14 @@ void Triangulation::write_to_stream(std::ostream &output_stream) const {
         Vertex *vertex = this->vertex(i);
         map[vertex] = i;
         output_stream << "  v" << i;
-        output_stream << " [label=" << (char) ('a' + vertex->label() - 1) << "];";
+        output_stream << " [label=" << (char) ('a' + std::max(vertex->label() - 1, 0)) << "];";
         output_stream << std::endl;
     }
 
     for (int j = 0; j < m; ++j) {
         Halfedge *halfedge = this->halfedge(j);
         Halfedge *twin = halfedge->twin();
-        if (is_representative(halfedge)) {
+        if (is_representative(halfedge) || !is_representative(halfedge->twin())) {
             Vertex *source = twin->target();
             Vertex *target = halfedge->target();
             std::string color = is_flippable(halfedge) ? "blue" : "red";
