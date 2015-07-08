@@ -16,7 +16,7 @@ typedef FlipGraph::Graph Graph;
 
 /* ---------------------------------------------------------------------- *
  * possible improvements
- *  - use vector<set<int>> as datastructure for graph
+ *  - use vector<set<int>> as data structure for graph
  *  - use indices.find() to check whether triangulation already exists and
  *    reuse pointer to get index if it exists
  *  - only flip edges that are different in the context of isomorphism

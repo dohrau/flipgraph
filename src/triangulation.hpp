@@ -16,6 +16,7 @@ const int TRIANGULATION_CANONICAL = 1;
 const int TRIANGULATION_DOMINANT_ZIG_ZAG = 2;
 const int TRIANGULATION_DOMINANT_TWIN_STAR = 3;
 const int TRIANGULATION_DOMINANT_BINARY_TREE = 4;
+const int TRIANGULAITON_OUTERPLANAR = 100;
 
 /* ---------------------------------------------------------------------- *
  * forward declarations
@@ -95,6 +96,9 @@ private:
     Halfedge *next_;
 
 public:
+    // sets the id
+    void set_id(int id);
+
     // sets the target vertex to the specified vertex
     void set_target(Vertex *vertex);
 
@@ -149,7 +153,7 @@ public:
     // destructor
     ~Triangulation();
 
-private:
+protected:
     // the list of vertices
     VertexList vertices_;
 
@@ -162,8 +166,11 @@ private:
     // creates and returns a new halfedge
     Halfedge *new_edge();
 
-    // makes the two specified edges twins
+    // makes the two specified halfedges twins
     void make_twins(Halfedge *halfedge_a, Halfedge *halfedge_b);
+
+    // makes the halfedge (and its twin) fixed, i.e., unflippable
+    void make_fixed(Halfedge*halfedge);
 
     // makes the two specified edges consecutive
     void make_consecutive(Halfedge *halfedge_a, Halfedge *halfedge_b);
@@ -178,7 +185,10 @@ private:
             Vertex *vertex_a, Vertex *vertex_b, Vertex *vertex_c);
 
     // performs an e3-expansion at the specified halfedge
-    void expand_three(Halfedge *halfedge);
+    void edpand(Halfedge *halfedge);
+
+    // splits the specified halfedge and the face incident to it
+    void split(Halfedge* halfedge);
 
     // builds the first triangle of the triangulation
     void build_first_triangle();
@@ -240,6 +250,10 @@ public:
 
     // writes the triangualtion to the specified stream
     void write_to_stream(std::ostream &output_stream) const;
+
+protected:
+    // debug
+    void check(Triangulation &triangulation);
 };
 
 /* ---------------------------------------------------------------------- *
@@ -321,13 +335,6 @@ public:
     // writes the code to the specified stream
     void write_to_stream(std::ostream &output_stream) const;
 };
-
-/* ---------------------------------------------------------------------- *
- * debug function declaration
- * ---------------------------------------------------------------------- */
-
-// checks whether the specified triangulation is as it should be
-void check_triangulation(Triangulation &triangulation);
 
 #endif
 
