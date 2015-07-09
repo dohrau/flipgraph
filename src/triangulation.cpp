@@ -2,6 +2,7 @@
  * triangulation.cpp
  * ---------------------------------------------------------------------- */
 
+#define OUTERPLANAR
 //#define NDEBUG
 
 #include "triangulation.hpp"
@@ -50,7 +51,9 @@ int Vertex::degree() const {
  * implementation of the halfedge class
  * ---------------------------------------------------------------------- */
 
-Halfedge::Halfedge(int id) : id_(id) { }
+Halfedge::Halfedge(int id) : id_(id) {
+    target_ = nullptr; // TODO: remove
+}
 
 void Halfedge::set_id(int id) {
     id_ = id;
@@ -97,6 +100,9 @@ Halfedge *Halfedge::next() const {
  * ---------------------------------------------------------------------- */
 
 Triangulation::Triangulation(int n, int triangulation_type) {
+#ifdef OUTERPLANAR
+    build_outerplanar(n);
+#else
     switch (triangulation_type) {
         case TRIANGULATION_CANONICAL:
             build_canonical(n);
@@ -110,12 +116,10 @@ Triangulation::Triangulation(int n, int triangulation_type) {
         case TRIANGULATION_DOMINANT_BINARY_TREE:
             build_dominant_binary_tree(n);
             break;
-        case TRIANGULAITON_OUTERPLANAR:
-            build_outerplanar(n);
-            break;
         default:
             build_canonical(n);
     }
+#endif
 }
 
 Triangulation::Triangulation(const Code &code) {
@@ -289,6 +293,10 @@ void Triangulation::build_dominant_twin_star(int n) {
         edpand(halfedge_a);
         std::swap(halfedge_a, halfedge_b);
     }
+
+#ifndef NDEBUG
+    check(*this);
+#endif
 }
 
 void Triangulation::build_dominant_zig_zag(int n) {
@@ -307,6 +315,10 @@ void Triangulation::build_dominant_zig_zag(int n) {
             halfedge = halfedge->next()->twin();
         }
     }
+
+#ifndef NDEBUG
+    check(*this);
+#endif
 }
 
 void Triangulation::build_dominant_binary_tree(int n) {
@@ -332,6 +344,10 @@ void Triangulation::build_dominant_binary_tree(int n) {
         queue.push(halfedge->prev()->twin());
         queue.push(halfedge->next()->twin());
     }
+
+#ifndef NDEBUG
+    check(*this);
+#endif
 }
 
 void Triangulation::build_outerplanar(int n) {
@@ -347,6 +363,10 @@ void Triangulation::build_outerplanar(int n) {
     for (int i = 3; i < n; ++i) {
         split(halfedge);
     }
+
+#ifndef NDEBUG
+    check(*this);
+#endif
 }
 
 void Triangulation::build_from_code(const Code &code) {
@@ -397,6 +417,15 @@ void Triangulation::build_from_code(const Code &code) {
         vertex_a->set_halfedge(first);
     }
 
+#ifdef OUTERPLANAR
+    // make edges that are adjacent to a non-triangle fixed
+    for (Halfedge *halfedge : halfedges_) {
+        if (halfedge->next()->next()->next() != halfedge) {
+            make_fixed(halfedge);
+        }
+    }
+#endif
+
 #ifndef NDEBUG
     check(*this);
 #endif
@@ -422,6 +451,7 @@ void Triangulation::copy(const Triangulation &triangulation) {
     for (int i = 0; i < m; ++i) {
         Halfedge *halfedge = triangulation.halfedge(i);
         Halfedge *copy = new_edge();
+        copy->set_id(halfedge->id());
         edge_map[halfedge] = copy;
     }
 
@@ -549,6 +579,10 @@ void Triangulation::flip(Halfedge *halfedge) {
     vertex_s->decrease_degree();
     vertex_a->increase_degree();
     vertex_b->increase_degree();
+
+#ifndef NDEBUG
+    check(*this);
+#endif
 }
 
 void Triangulation::write_to_stream(std::ostream &output_stream) const {
@@ -583,12 +617,12 @@ void Triangulation::write_to_stream(std::ostream &output_stream) const {
     output_stream << "}" << std::endl;
 }
 
+#ifndef OUTERPLANAR
 void Triangulation::check(Triangulation &triangulation) {
     int n = triangulation.order();
     int m = triangulation.size();
 
-    // This does not hold if we have an outerplanar triangulation
-    //assert(m == 2 * (3 * n - 6));
+    assert(m == 2 * (3 * n - 6));
 
     for (int i = 0; i < n; ++i) {
         // check vertex pointers
@@ -610,13 +644,13 @@ void Triangulation::check(Triangulation &triangulation) {
         // check halfedge pointers
         Halfedge *halfedge = triangulation.halfedge(i);
         assert(halfedge == halfedge->twin()->twin());
+        assert(halfedge->target() == halfedge->next()->twin()->target());
         assert(halfedge == halfedge->prev()->next());
         assert(halfedge == halfedge->next()->prev());
         assert(halfedge == halfedge->next()->next()->next());
         assert(halfedge == halfedge->prev()->prev()->prev());
         assert(halfedge->next() == halfedge->prev()->prev());
         assert(halfedge->prev() == halfedge->next()->next());
-        assert(halfedge->target() == halfedge->next()->twin()->target());
     }
 
     // handshaking lemma
@@ -629,6 +663,66 @@ void Triangulation::check(Triangulation &triangulation) {
     }
     assert(sum == m);
 }
+#else
+
+void Triangulation::check(Triangulation &triangulation) {
+    int n = triangulation.order();
+    int m = triangulation.size();
+
+
+    for (int i = 0; i < n; ++i) {
+        // check vertex pointers
+        Vertex *vertex = triangulation.vertex(i);
+        assert(vertex == vertex->halfedge()->twin()->target());
+
+        // check vertex degree
+        int degree = 0;
+        Halfedge *first = vertex->halfedge();
+        Halfedge *current = first;
+        do {
+            degree++;
+            current = current->twin()->next();
+        } while (current != first);
+        assert(vertex->degree() == degree);
+    }
+
+    bool outer_cycle = false;
+    for (int i = 0; i < m; ++i) {
+        // check halfedge pointers
+        Halfedge *halfedge = triangulation.halfedge(i);
+        assert(halfedge->target() != nullptr); // TODO: remove
+        assert(halfedge == halfedge->twin()->twin());
+        assert(halfedge->target() == halfedge->next()->twin()->target());
+        assert(halfedge == halfedge->prev()->next());
+        assert(halfedge == halfedge->next()->prev());
+        if (outer_cycle || halfedge == halfedge->next()->next()->next()) {
+            assert(halfedge == halfedge->next()->next()->next());
+            assert(halfedge == halfedge->prev()->prev()->prev());
+            assert(halfedge->next() == halfedge->prev()->prev());
+            assert(halfedge->prev() == halfedge->next()->next());
+        } else {
+            Halfedge *forward = halfedge;
+            Halfedge *backward = halfedge;
+            for (int i = 0; i < n; ++i) {
+                forward = forward->next();
+                backward = backward->prev();
+            }
+            assert(halfedge == forward);
+            assert(halfedge == backward);
+        }
+    }
+
+    // handshaking lemma
+    int sum = 0;
+    for (int i = 0; i < n; ++i) {
+        Vertex *vertex = triangulation.vertex(i);
+        int degree = vertex->degree();
+        sum += degree;
+    }
+    assert(sum == m);
+}
+
+#endif
 
 /* ---------------------------------------------------------------------- *
  * impementation of the code class

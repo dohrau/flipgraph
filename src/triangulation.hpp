@@ -16,7 +16,6 @@ const int TRIANGULATION_CANONICAL = 1;
 const int TRIANGULATION_DOMINANT_ZIG_ZAG = 2;
 const int TRIANGULATION_DOMINANT_TWIN_STAR = 3;
 const int TRIANGULATION_DOMINANT_BINARY_TREE = 4;
-const int TRIANGULAITON_OUTERPLANAR = 100;
 
 /* ---------------------------------------------------------------------- *
  * forward declarations

@@ -99,8 +99,19 @@ int main(int argc, char *argv[]) {
     char *option_n = get_cmd_option(argc, argv, "-n");
     int n = (option_n) ? std::stoi(option_n) : 4;
 
-    Triangulation outerplanar(n, TRIANGULAITON_OUTERPLANAR);
-    outerplanar.write_to_stream(std::cout);
+    FlipGraph flip_graph;
+    flip_graph.compute(n);
+
+    std::cout << "flip graph computed" << std::endl;
+
+    std::ofstream output;
+    int m = static_cast<int>(flip_graph.graph().size());
+    for (int i = 0; i < m; ++i) {
+        Triangulation triangulation(flip_graph.code(i));
+        output.open(std::to_string(i) + ".dot");
+        triangulation.write_to_stream(output);
+        output.close();
+    }
 
     return 0;
 }
