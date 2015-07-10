@@ -618,6 +618,7 @@ void Triangulation::write_to_stream(std::ostream &output_stream) const {
 }
 
 #ifndef OUTERPLANAR
+
 void Triangulation::check(Triangulation &triangulation) {
     int n = triangulation.order();
     int m = triangulation.size();
@@ -663,6 +664,7 @@ void Triangulation::check(Triangulation &triangulation) {
     }
     assert(sum == m);
 }
+
 #else
 
 void Triangulation::check(Triangulation &triangulation) {
@@ -827,7 +829,9 @@ void Code::compute_code(const Triangulation &triangulation) {
         // only copute codes if target vertex has minimal degree
         if (halfedge->target()->degree() > min_degree) { continue; }
         update(triangulation, halfedge, true);
+#ifndef OUTERPLANAR
         update(triangulation, halfedge, false);
+#endif
     }
 }
 

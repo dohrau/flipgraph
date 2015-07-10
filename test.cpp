@@ -102,15 +102,25 @@ int main(int argc, char *argv[]) {
     FlipGraph flip_graph;
     flip_graph.compute(n);
 
-    std::cout << "flip graph computed" << std::endl;
+    std::vector<int> distances;
+    distance_list(flip_graph.graph(), 0, distances);
 
-    std::ofstream output;
-    int m = static_cast<int>(flip_graph.graph().size());
-    for (int i = 0; i < m; ++i) {
-        Triangulation triangulation(flip_graph.code(i));
-        output.open(std::to_string(i) + ".dot");
-        triangulation.write_to_stream(output);
-        output.close();
+    int max_dist = 0;
+    for (int i = 0; i < distances.size(); i++) {
+        max_dist = std::max(max_dist, distances[i]);
+    }
+
+    int count = 0;
+    for (int i = 0; i < distances.size(); ++i) {
+        if (distances[i] == max_dist) {
+            std::ofstream output;
+            output.open(std::to_string(count++) + ".dot");
+
+            Triangulation triangulation(flip_graph.code(i));
+            triangulation.write_to_stream(output);
+
+            output.close();
+        }
     }
 
     return 0;
