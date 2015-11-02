@@ -14,8 +14,7 @@
 
 const int TRIANGULATION_CANONICAL = 1;
 const int TRIANGULATION_DOMINANT_ZIG_ZAG = 2;
-const int TRIANGULATION_DOMINANT_TWIN_STAR = 3;
-const int TRIANGULATION_DOMINANT_BINARY_TREE = 4;
+const int TRIANGULATION_DOMINANT_BINARY_TREE = 3;
 
 /* ---------------------------------------------------------------------- *
  * forward declarations
@@ -195,9 +194,6 @@ protected:
     // builds a canonical triangulation with n vertices
     void build_canonical(int n);
 
-    // builds a triangulation with one dominant vertex where the rest forms a twin star
-    void build_dominant_twin_star(int n);
-
     // builds a triangulation with one dominant vertex where the rest forms a bistar
     void build_dominant_zig_zag(int n);
 
@@ -309,7 +305,7 @@ public:
     // returns the i-th symbol of the code
     unsigned char symbol(int i) const;
 
-    // returns the lenghh of the code
+    // returns the length of the code
     int length() const;
 
     // returns whether the code is equal to the specified code or not

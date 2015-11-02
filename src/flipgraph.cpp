@@ -14,14 +14,6 @@
 
 typedef FlipGraph::Graph Graph;
 
-/* ---------------------------------------------------------------------- *
- * possible improvements
- *  - use vector<set<int>> as data structure for graph
- *  - use indices.find() to check whether triangulation already exists and
- *    reuse pointer to get index if it exists
- *  - only flip edges that are different in the context of isomorphism
- * ---------------------------------------------------------------------- */
-
 void FlipGraph::compute(int n) {
     graph_.clear();
     int count = 0;
@@ -51,19 +43,14 @@ void FlipGraph::compute(int n) {
 
         // loop through neighboring triangulations
         int m = triangulation->size();
-        //std::set<Code> edge_codes;
+
         for (int i = 0; i < m; ++i) {
             Halfedge *halfedge = triangulation->halfedge(i);
             if (triangulation->is_representative(halfedge) && triangulation->is_flippable(halfedge)) {
-                //Code edge_code(*triangulation, halfedge);
-                //if (edge_codes.find(edge_code) != edge_codes.end()) { continue; }
-                //edge_codes.insert(edge_code);
-
                 triangulation->flip(halfedge);
 
                 Code triangulation_code(*triangulation);
                 int other_index = 0;
-                // todo: faster if using indices.find() and reuse pointer to position
                 if (indices.count(triangulation_code) == 0) {
                     // add newly discovered triangulation
                     other_index = count++;
@@ -76,8 +63,9 @@ void FlipGraph::compute(int n) {
                     other_index = indices[triangulation_code];
                 }
 
-                // add halfedge if not already present
-                if (std::count(graph_[index].begin(), graph_[index].end(), other_index) == 0) {
+                // add edge if not already present
+                if (std::count(graph_[index].begin(), graph_[index].end(), other_index) == 0
+                    && index != other_index) {
                     graph_[index].push_back(other_index);
                 }
 

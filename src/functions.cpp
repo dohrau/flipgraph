@@ -6,18 +6,33 @@
 
 #include <queue>
 #include <utility>
+#include <climits>
 
-void list_to_histogram(std::vector<int> &distances, std::vector<int> &histogram) {
-    int n = (int) distances.size();
+int list_min(std::vector<int> &list) {
+    int minimum = INT_MAX;
+    for (int value : list) {
+        minimum = std::min(minimum, value);
+    }
+    return minimum;
+}
+
+int list_max(std::vector<int> &list) {
+    int maximum = INT_MIN;
+    for (int value : list) {
+        maximum = std::max(maximum, value);
+    }
+    return maximum;
+}
+
+void list_to_histogram(std::vector<int> &list, std::vector<int> &histogram) {
     int maximum = -1;
     histogram.clear();
-    for (int i = 0; i < n; ++i) {
-        int distance = distances[i];
-        if (maximum < distance) {
-            histogram.resize(distance + 1, 0);
-            maximum = distance;
+    for (int value : list) {
+        if (maximum < value) {
+            histogram.resize(value + 1, 0);
+            maximum = value;
         }
-        histogram[distance]++;
+        histogram[value]++;
     }
 }
 
@@ -27,18 +42,17 @@ void distance_list(const Graph &graph, int vertex, std::vector<int> &distances) 
 }
 
 void distance_list(const Graph &graph, std::vector<int> &vertices, std::vector<int> &distances) {
-    int n = (int) graph.size();
-    int l = (int) vertices.size();
+    int n = static_cast<int>(graph.size());
 
     distances.clear();
     distances.resize(n, -1);
 
     std::queue<std::pair<int, int> > queue;
-    for (int i = 0; i < l; ++i) {
-        int vertex = vertices[i];
+    for (int vertex : vertices) {
         if (distances[vertex] == -1) {
             distances[vertex] = 0;
-            queue.push(std::make_pair(vertex, 0));
+            //queue.push(std::make_pair(vertex, 0));
+            queue.push({vertex, 0});
         }
     }
 
@@ -52,7 +66,7 @@ void distance_list(const Graph &graph, std::vector<int> &vertices, std::vector<i
             int neighbor = graph[vertex][i];
             if (distances[neighbor] == -1) {
                 distances[neighbor] = distance + 1;
-                queue.push(std::make_pair(neighbor, distance + 1));
+                queue.push({neighbor, distance + 1});
             }
         }
     }

@@ -2,7 +2,7 @@
  * triangulation.cpp
  * ---------------------------------------------------------------------- */
 
-#define OUTERPLANAR
+//#define OUTERPLANAR
 //#define NDEBUG
 
 #include "triangulation.hpp"
@@ -33,7 +33,7 @@ void Vertex::increase_degree() {
 
 void Vertex::decrease_degree() {
     degree_--;
-}
+}x
 
 int Vertex::label() const {
     return label_;
@@ -52,7 +52,7 @@ int Vertex::degree() const {
  * ---------------------------------------------------------------------- */
 
 Halfedge::Halfedge(int id) : id_(id) {
-    target_ = nullptr; // TODO: remove
+    target_ = nullptr;
 }
 
 void Halfedge::set_id(int id) {
@@ -109,9 +109,6 @@ Triangulation::Triangulation(int n, int triangulation_type) {
             break;
         case TRIANGULATION_DOMINANT_ZIG_ZAG:
             build_dominant_zig_zag(n);
-            break;
-        case TRIANGULATION_DOMINANT_TWIN_STAR:
-            build_dominant_twin_star(n);
             break;
         case TRIANGULATION_DOMINANT_BINARY_TREE:
             build_dominant_binary_tree(n);
@@ -273,25 +270,6 @@ void Triangulation::build_canonical(int n) {
     // apply e3-expansion n-3 times
     for (int i = 3; i < n; ++i) {
         edpand(halfedge);
-    }
-
-#ifndef NDEBUG
-    check(*this);
-#endif
-}
-
-void Triangulation::build_dominant_twin_star(int n) {
-    assert(n >= 4);
-
-    // create first triangle
-    build_first_triangle();
-    Halfedge *halfedge_a = halfedge(0);
-    Halfedge *halfedge_b = halfedge_a->next();
-
-    // create all other triangles by applying e3-expansions
-    for (int i = 3; i < n; ++i) {
-        edpand(halfedge_a);
-        std::swap(halfedge_a, halfedge_b);
     }
 
 #ifndef NDEBUG
@@ -692,7 +670,7 @@ void Triangulation::check(Triangulation &triangulation) {
     for (int i = 0; i < m; ++i) {
         // check halfedge pointers
         Halfedge *halfedge = triangulation.halfedge(i);
-        assert(halfedge->target() != nullptr); // TODO: remove
+        assert(halfedge->target() != nullptr);
         assert(halfedge == halfedge->twin()->twin());
         assert(halfedge->target() == halfedge->next()->twin()->target());
         assert(halfedge == halfedge->prev()->next());
@@ -826,7 +804,7 @@ void Code::compute_code(const Triangulation &triangulation) {
 
     for (int i = 0; i < m; ++i) {
         Halfedge *halfedge = triangulation.halfedge(i);
-        // only copute codes if target vertex has minimal degree
+        // only compute codes if target vertex has minimal degree
         if (halfedge->target()->degree() > min_degree) { continue; }
         update(triangulation, halfedge, true);
 #ifndef OUTERPLANAR

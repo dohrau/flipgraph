@@ -9,8 +9,14 @@
 
 typedef std::vector<std::vector<int> > Graph;
 
+// computes minimum value contained in list
+int list_min(std::vector<int> &list);
+
+// computes maximum value contained in list
+int list_max(std::vector<int> & list);
+
 // coputes histogram from list of distances
-void list_to_histogram(std::vector<int> &distances, std::vector<int> &histogram);
+void list_to_histogram(std::vector<int> &list, std::vector<int> &histogram);
 
 // computes the distances for all vertices to the specified vertex
 void distance_list(const Graph &graph, int vertex, std::vector<int> &distances);
